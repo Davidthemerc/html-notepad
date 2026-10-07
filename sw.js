@@ -1,4 +1,4 @@
-const CACHE_NAME = 'html-notepad-v2.9.4';
+const CACHE_NAME = 'html-notepad-v2.9.5';
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -51,12 +51,30 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return;
+  const request = event.request;
+  if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
+  if ((url.protocol !== 'http:' && url.protocol !== 'https:') ||
+      url.origin !== self.location.origin) {
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
-      const copy = response.clone();
-      caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-      return response;
-    }))
+    caches.match(request).then(cached => {
+      if (cached) return cached;
+      return fetch(request).then(response => {
+        // Never let an optional runtime-cache write break a successful fetch.
+        if (response && response.ok) {
+          const copy = response.clone();
+          event.waitUntil(
+            caches.open(CACHE_NAME)
+              .then(cache => cache.put(request, copy))
+              .catch(() => {})
+          );
+        }
+        return response;
+      });
+    })
   );
 });
