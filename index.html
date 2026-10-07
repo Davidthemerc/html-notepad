@@ -219,7 +219,7 @@
     <span id="charCount">0 chars</span>
     <span id="cursorPosition">Ln 1, Col 1</span>
     <span class="zoom-control"><button id="zoomOutBtn" title="Zoom out">−</button><span id="zoomLabel">100%</span><button id="zoomInBtn" title="Zoom in">+</button></span>
-    <span>v2.9.1</span>
+    <span>v2.9.2</span>
   </div>
 </div>
 
@@ -535,7 +535,7 @@
   <div class="manual-head">
     <div>
       <div id="manualDialogTitle" class="manual-title">HTML Notepad User Manual</div>
-      <div class="manual-version">Integrated Help · v2.9.1</div>
+      <div class="manual-version">Integrated Help · v2.9.2</div>
     </div>
     <button id="manualCloseTopBtn" type="button" class="manual-close" title="Close Manual (Esc)" aria-label="Close Manual">×</button>
   </div>
@@ -557,7 +557,7 @@
 </dialog>
 
 <div id="manualSectionStore" hidden>
-<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 2.9.1</h2>
+<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 2.9.2</h2>
 <p>HTML Notepad is a self-contained, offline notepad that runs in a web
 browser. It provides tabs, rich-text formatting, folders, embedded
 images, search tools, printing, backups, and session recovery without
@@ -570,7 +570,7 @@ operating system unless you explicitly export a document or create a
 JSON backup.</p>
 <hr /></section>
 <section data-manual-id="starting-html-notepad" data-manual-title="1. Starting HTML Notepad"><h2>1. Starting HTML Notepad</h2>
-<p>For the standalone edition, open <code>HTML Notepad v2.9.1.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
+<p>For the standalone edition, open <code>HTML Notepad v2.9.2.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
 <p>A new, empty <strong>Untitled</strong> document is available when
 there is no previous workspace to restore. HTML Notepad also remembers
 the prior session, including open tabs, the active tab, tab order,
@@ -1542,17 +1542,17 @@ Press <strong>/</strong> or <strong>Ctrl+F</strong> to focus manual
 search, <strong>Alt+Up</strong> or <strong>Alt+Down</strong> to move
 between sections, and <strong>Escape</strong> to close the popup.</p>
 <hr />
-<p><em>HTML Notepad User Manual — v2.9.1</em></p></section>
+<p><em>HTML Notepad User Manual — v2.9.2</em></p></section>
 
 <section data-manual-id="pwa-and-standalone-builds" data-manual-title="28. PWA and Standalone Builds"><h2>28. PWA and Standalone Builds</h2>
-<p>Version 2.9.1 is published in two forms that share the same application code and features.</p>
+<p>Version 2.9.2 is published in two forms that share the same application code and features.</p>
 <ul>
-<li><strong>Standalone HTML:</strong> <code>HTML Notepad v2.9.1.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
-<li><strong>Modular/PWA:</strong> the GitHub build uses <code>index.html</code>, <code>assets/styles.css</code>, the generated <code>assets/app.js</code>, <code>manifest.webmanifest</code>, icons, and <code>sw.js</code>. Maintainable JavaScript source lives under <code>src/js/</code> in responsibility-based files, including a separate spelling-dictionary source file. Host the built folder over HTTPS (for example with GitHub Pages or Cloudflare Pages) to make it installable and to allow the service worker to cache the application shell for offline launches.</li>
+<li><strong>Standalone HTML:</strong> <code>HTML Notepad v2.9.2.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
+<li><strong>Modular/PWA:</strong> the GitHub build uses <code>index.html</code>, <code>assets/styles.css</code>, separate responsibility-based JavaScript files under <code>assets/js/</code>, <code>manifest.webmanifest</code>, icons, and <code>sw.js</code>. The hosted PWA runs those separate JavaScript files directly; it does not use a monolithic <code>app.js</code>. Host the built folder over HTTPS (for example with GitHub Pages or Cloudflare Pages) to make it installable and to allow the service worker to cache the application shell for offline launches.</li>
 </ul>
 <p>The hosted PWA does not upload Notepad documents. Saved documents, folders, images, settings, and drafts continue to use browser-local IndexedDB and localStorage. The hosting server supplies the application files themselves.</p>
 <div class="manual-callout"><strong>Moving between builds:</strong> browser storage is scoped to the page origin. A library created in a locally opened standalone file will not automatically appear in the hosted PWA, and vice versa. Use <strong>Backup &amp; Restore</strong> to move the Notepad library between them.</div>
-<p>The repository includes <code>tools/build.py</code>. Edit JavaScript under <code>src/js/</code>, then run the build script to regenerate <code>assets/app.js</code> and the single-file standalone edition from the same source. <code>tools/build_standalone.py</code> remains as a compatibility wrapper for the unified build.</p>
+<p>The deployable GitHub/PWA package contains only runtime files. Its JavaScript remains split by responsibility under <code>assets/js/</code>. The separate standalone edition embeds the same JavaScript into one portable HTML file.</p>
 <hr /></section>
 </div>
 
@@ -1585,7 +1585,30 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
   </div>
 </dialog>
 
-<script src="./assets/app.js" defer></script>
+<script src="./assets/js/00-core.js" defer></script>
+<script src="./assets/js/01-spell-dictionary.js" defer></script>
+<script src="./assets/js/02-spellcheck.js" defer></script>
+<script src="./assets/js/03-app-settings.js" defer></script>
+<script src="./assets/js/04-storage.js" defer></script>
+<script src="./assets/js/05-layout-rulers.js" defer></script>
+<script src="./assets/js/06-filesystem.js" defer></script>
+<script src="./assets/js/07-tabs-session-split.js" defer></script>
+<script src="./assets/js/08-markdown.js" defer></script>
+<script src="./assets/js/09-import-export.js" defer></script>
+<script src="./assets/js/10-protection.js" defer></script>
+<script src="./assets/js/11-trash.js" defer></script>
+<script src="./assets/js/12-backup-restore.js" defer></script>
+<script src="./assets/js/13-editor-selection-links.js" defer></script>
+<script src="./assets/js/14-font-color.js" defer></script>
+<script src="./assets/js/15-document-tools.js" defer></script>
+<script src="./assets/js/16-context-clipboard-print.js" defer></script>
+<script src="./assets/js/17-dirty-recovery-settings.js" defer></script>
+<script src="./assets/js/18-find-replace.js" defer></script>
+<script src="./assets/js/19-tab-key.js" defer></script>
+<script src="./assets/js/20-editor-events.js" defer></script>
+<script src="./assets/js/21-help-manual.js" defer></script>
+<script src="./assets/js/22-event-binding.js" defer></script>
+<script src="./assets/js/23-startup.js" defer></script>
 
 </body>
 </html>
