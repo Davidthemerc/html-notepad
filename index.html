@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="en" data-build="modular">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#2d5f86" />
+<meta name="application-name" content="Notepad" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Notepad" />
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png" />
+<link rel="apple-touch-icon" href="./icons/icon-192.png" />
+<link id="appManifest" rel="manifest" href="./manifest.webmanifest" />
+<title>Notepad</title>
+<link rel="stylesheet" href="./assets/styles.css" />
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <button id="filesToggleBtn" aria-expanded="false" aria-controls="sidebar" title="Show or hide Files">☰ Files</button>
+    <div class="brand">Notepad</div>
+    <button id="newBtn" title="New (Ctrl+N)">New</button>
+    <button id="openBtn" title="Open a virtual file (Ctrl+O). Right-click for Recent Files.">Open</button>
+    <button id="topImportBtn" title="Import TXT, HTML, or Markdown files from your computer">Import</button>
+    <button id="saveBtn" class="primary" title="Save (Ctrl+S)">Save</button>
+    <button id="topbarExpandBtn" class="mobile-expand-btn" title="Show more file controls" aria-label="Show more file controls" aria-expanded="false">⌄</button>
+    <button id="saveAsBtn" class="mobile-extra" title="Save As (Ctrl+Shift+S)">Save As</button>
+    <button id="printBtn" class="mobile-extra" title="Print document (Ctrl+P)" aria-label="Print">Print</button>
+    <button id="trashBtn" class="mobile-extra" title="Open Trash">Trash</button>
+    <button id="splitViewBtn" class="desktop-split-control" type="button" title="Show two documents side by side" aria-pressed="false">Split View</button>
+    <div class="spacer"></div>
+    <button id="backupRestoreBtn" class="mobile-extra" title="Backup, restore, and restore safety">Backup &amp; Restore</button>
+    <button id="settingsBtn" class="mobile-extra" title="Settings">Settings</button>
+    <button id="helpBtn" class="mobile-extra" title="Help and User Manual (F1)" aria-haspopup="menu" aria-expanded="false">Help ▾</button>
+  </div>
+
+  <div id="formatToolbar" class="toolbar" aria-label="Formatting toolbar">
+    <button id="undoBtn" title="Undo (Ctrl+Z)">↶</button>
+    <button id="redoBtn" title="Redo (Ctrl+Y)">↷</button>
+    <span class="sep"></span>
+    <button id="boldBtn" class="rich-only md-supported md-edit-control" title="Bold (Ctrl+B)" aria-label="Bold"><strong>B</strong></button>
+    <button id="italicBtn" class="rich-only md-supported md-edit-control" title="Italic (Ctrl+I)" aria-label="Italic"><em>I</em></button>
+    <button id="underlineBtn" class="rich-only" title="Underline (Ctrl+U)" aria-label="Underline"><u>U</u></button>
+    <button id="clearFormattingBtn" class="mobile-extra rich-only" title="Clear formatting from selected text" aria-label="Clear formatting">Tx</button>
+    <div class="toolbar-menu-wrap mobile-extra rich-only">
+      <button id="editToolsBtn" title="Editing tools" aria-label="Editing tools">Edit ▾</button>
+      <div id="editToolsMenu" class="toolbar-popover edit-tools-menu" hidden>
+        <button id="insertImageBtn" type="button">Insert Image…</button>
+        <button id="insertDateTimeBtn" type="button">Insert Date/Time…</button>
+        <button id="insertSpecialBtn" type="button">Insert Special Character…</button>
+        <button id="insertHrBtn" type="button">Insert Horizontal Line</button>
+        <button id="insertNbspBtn" type="button">Insert Nonbreaking Space</button>
+        <div class="context-sep"></div>
+        <button id="documentPropertiesBtn" type="button">Document Properties…</button>
+        <button id="documentStatsBtn" type="button">Document Statistics…</button>
+        <button id="changeUpperBtn" type="button">UPPERCASE</button>
+        <button id="changeLowerBtn" type="button">lowercase</button>
+        <button id="changeTitleBtn" type="button">Title Case</button>
+        <button id="changeSentenceBtn" type="button">Sentence case</button>
+        <button id="goToLineBtn" type="button">Go to Line… <span>Ctrl+G</span></button>
+      </div>
+    </div>
+    <span id="markdownModeToggle" class="markdown-mode-toggle" hidden>
+      <button id="markdownEditBtn" type="button" class="active" title="Edit raw Markdown source">Edit</button>
+      <button id="markdownPreviewBtn" type="button" title="Read rendered Markdown">Preview</button>
+    </span>
+    <div id="markdownToolsWrap" class="toolbar-menu-wrap mobile-extra md-only" hidden>
+      <button id="markdownToolsBtn" type="button" title="Markdown formatting tools" aria-label="Markdown formatting tools" aria-expanded="false">Markdown ▾</button>
+      <div id="markdownToolsMenu" class="toolbar-popover edit-tools-menu markdown-tools-menu" hidden>
+        <button type="button" data-md-heading="1">Heading 1 <span>#</span></button>
+        <button type="button" data-md-heading="2">Heading 2 <span>##</span></button>
+        <button type="button" data-md-heading="3">Heading 3 <span>###</span></button>
+        <button type="button" data-md-heading="4">Heading 4 <span>####</span></button>
+        <button type="button" data-md-heading="5">Heading 5 <span>#####</span></button>
+        <button type="button" data-md-heading="6">Heading 6 <span>######</span></button>
+        <div class="context-sep"></div>
+        <button type="button" data-md-action="blockquote">Blockquote <span>&gt;</span></button>
+        <button type="button" data-md-action="strike">Strikethrough <span>~~text~~</span></button>
+        <button type="button" data-md-action="inline-code">Inline Code <span>`code`</span></button>
+        <button type="button" data-md-action="code-block">Code Block <span>```</span></button>
+        <button type="button" data-md-action="link">Link <span>[text](url)</span></button>
+        <button type="button" data-md-action="horizontal-rule">Horizontal Rule <span>---</span></button>
+      </div>
+    </div>
+    <select id="fontFamilySelect" class="type-control mobile-extra rich-only" title="Font family" aria-label="Font family">
+      <option value="monospace">Monospace</option>
+      <option value="Arial">Arial</option>
+      <option value="Calibri">Calibri</option>
+      <option value="Georgia">Georgia</option>
+      <option value="Tahoma">Tahoma</option>
+      <option value="Times New Roman">Times New Roman</option>
+      <option value="Trebuchet MS">Trebuchet MS</option>
+      <option value="Verdana">Verdana</option>
+      <option value="sans-serif">System Sans</option>
+      <option value="serif">System Serif</option>
+    </select>
+    <select id="fontSizeSelect" class="type-control size mobile-extra" title="Font size" aria-label="Font size">
+      <option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="14">14</option>
+      <option value="16" selected>16</option><option value="18">18</option><option value="20">20</option><option value="24">24</option>
+      <option value="28">28</option><option value="32">32</option><option value="36">36</option><option value="48">48</option><option value="72">72</option>
+    </select>
+    <button id="toolbarExpandBtn" class="mobile-expand-btn" title="Show more formatting controls" aria-label="Show more formatting controls" aria-expanded="false">⌄</button>
+    <span class="sep mobile-extra"></span>
+    <button id="justifyLeftBtn" class="format-text mobile-extra" title="Align left" aria-label="Align left"><span class="align-icon left" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>
+    <button id="justifyCenterBtn" class="format-text mobile-extra" title="Center" aria-label="Center"><span class="align-icon center" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>
+    <button id="justifyRightBtn" class="format-text mobile-extra" title="Align right" aria-label="Align right"><span class="align-icon right" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>
+    <span class="sep mobile-extra"></span>
+    <button id="unorderedListBtn" class="mobile-extra md-edit-control" title="Bulleted list (Ctrl+Shift+8)" aria-label="Bulleted list"><span class="bullet-icon" aria-hidden="true">•</span></button>
+    <button id="orderedListBtn" class="mobile-extra md-edit-control" title="Numbered list (Ctrl+Shift+7)" aria-label="Numbered list"><span class="numeric-icon" aria-hidden="true">1.</span></button>
+    <button id="outdentBtn" class="mobile-extra md-edit-control" title="Outdent (Shift+Tab in editor)" aria-label="Outdent">⇤</button>
+    <button id="indentBtn" class="mobile-extra md-edit-control" title="Indent (Tab in editor)" aria-label="Indent">⇥</button>
+    <span class="sep mobile-extra"></span>
+    <div class="toolbar-menu-wrap mobile-extra">
+      <button id="colorPaletteBtn" class="color-button" title="Font Color — 32 common colors" aria-label="Font Color quick palette" aria-expanded="false">
+        <svg class="color-tool-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 0 0 0 18h1.25a2.25 2.25 0 0 0 0-4.5h-1.1a1.7 1.7 0 0 1 0-3.4H15A6 6 0 0 0 15 3h-3Z" fill="currentColor" opacity=".28"/><circle cx="7.4" cy="9" r="1.7" fill="#e53935"/><circle cx="10.4" cy="6.3" r="1.7" fill="#fbc02d"/><circle cx="14.4" cy="6.5" r="1.7" fill="#43a047"/><circle cx="17" cy="9.7" r="1.7" fill="#1e88e5"/></svg><span aria-hidden="true">▾</span>
+      </button>
+      <div id="colorPaletteMenu" class="toolbar-popover" hidden><div id="colorGrid" class="color-grid" aria-label="Common font colors"></div></div>
+    </div>
+    <div class="toolbar-menu-wrap mobile-extra">
+      <button id="colorWheelBtn" class="color-button" title="Font Color Wheel — choose any color" aria-label="Font Color Wheel" aria-expanded="false"><span class="color-wheel-icon" aria-hidden="true"></span></button>
+      <div id="colorWheelMenu" class="toolbar-popover color-wheel-popover" hidden>
+        <div class="wheel-canvas-wrap"><canvas id="colorWheelCanvas" width="184" height="184" aria-label="Font color wheel"></canvas></div>
+        <div class="wheel-control"><label for="colorBrightness">Brightness</label><input id="colorBrightness" type="range" min="0" max="100" value="100" /></div>
+        <div class="wheel-value-row"><span id="colorWheelPreview" class="wheel-preview" aria-hidden="true"></span><input id="colorHexInput" type="text" maxlength="7" value="#000000" aria-label="Selected font color hex value" /></div>
+        <div class="wheel-actions"><button id="colorWheelCancelBtn" type="button">Cancel</button><button id="colorWheelApplyBtn" type="button" class="primary">Apply</button></div>
+      </div>
+    </div>
+    <div class="toolbar-menu-wrap mobile-extra">
+      <button id="colorHistoryBtn" class="color-button" title="Font Color History — last 10 colors and current document usage" aria-label="Font Color History" aria-expanded="false"><span class="color-history-icon" aria-hidden="true"><i></i><i></i><i></i><b>↺</b></span></button>
+      <div id="colorHistoryMenu" class="toolbar-popover history-popover" hidden><div class="history-title">Recent font colors · current document text usage</div><div id="colorHistoryList" class="color-history-list"></div></div>
+    </div>
+  </div>
+  <div class="tabs-shell">
+    <div id="tabsbar" class="tabsbar" aria-label="Document tabs"></div>
+    <button id="allTabsBtn" class="all-tabs-btn" title="All open tabs" aria-label="All open tabs">All Tabs ▾</button>
+  </div>
+
+  <div id="workspace" class="workspace">
+    <aside id="sidebar" class="sidebar" aria-label="Files drawer">
+      <div class="sidebar-head">
+        <div class="sidebar-title"><strong>Files</strong><div class="sidebar-title-right"><span id="fileCount" class="small-note">0</span><button id="drawerCloseBtn" class="drawer-close" title="Close Files" aria-label="Close Files">×</button></div></div>
+        <input id="fileSearch" type="search" placeholder="Search names & contents…" autocomplete="off" />
+      </div>
+      <div id="fileList" aria-label="Virtual file list" tabindex="0"></div>
+      <div class="sidebar-actions">
+        <button id="newFolderBtn" title="New virtual folder">New Folder</button>
+        <button id="filesTreeMenuBtn" title="Folder tree options">Tree ▾</button>
+        <button id="importDocBtn" title="Import TXT or HTML from this device">Import</button>
+        <button id="filesSortMenuBtn" title="Sort files and folders">Sort ▾</button>
+        <button id="renameBtn">Rename</button>
+        <button id="deleteBtn" class="danger">Delete</button>
+      </div>
+    </aside>
+    <div id="drawerBackdrop" class="drawer-backdrop" aria-hidden="true"></div>
+
+    <div id="splitWorkspace" class="split-workspace">
+      <section id="leftPane" class="split-pane active" data-side="left">
+        <div id="leftPaneHeader" class="split-pane-header" hidden>
+          <span class="split-pane-side">LEFT</span>
+          <strong id="leftPaneName" class="split-pane-name"></strong>
+          <button id="leftPaneCloseBtn" class="split-pane-close" type="button" title="Close document" aria-label="Close document in Left View">×</button>
+        </div>
+        <div class="split-pane-body">
+          <div id="leftPaneMount" class="split-live-mount">
+    <main id="editorShell" class="editor-shell">
+      <div id="findBar" class="findbar" hidden>
+        <input id="findInput" type="search" placeholder="Find…" aria-label="Find text" />
+        <input id="replaceInput" type="text" placeholder="Replace…" aria-label="Replace text" />
+        <span id="findMatchCount" class="match-count">0/0</span>
+        <button id="findPrevBtn" title="Previous match">↑</button>
+        <button id="findNextBtn" title="Next match">↓</button>
+        <button id="replaceOneBtn">Replace</button>
+        <button id="replaceAllBtn">Replace All</button>
+        <label class="checkbox-row" style="padding:0"><input id="findCaseToggle" type="checkbox" /> Aa</label>
+        <button id="findCloseBtn" title="Close">×</button>
+      </div>
+      <div class="top-ruler-row" aria-hidden="true">
+        <div class="ruler-corner"></div>
+        <div class="ruler-wrap horizontal" aria-label="Horizontal document ruler"><div id="ruler"></div></div>
+      </div>
+      <div class="editor-stage">
+        <div id="lineNumberGutter" class="line-number-gutter" aria-hidden="true"></div>
+        <div class="vertical-ruler-wrap" aria-label="Vertical document ruler"><div id="verticalRuler"></div></div>
+        <div id="documentHost" class="document-host">
+          <div id="editor" contenteditable="true" spellcheck="false" role="textbox" aria-multiline="true"></div>
+          <textarea id="markdownSource" spellcheck="true" aria-label="Text source editor" hidden></textarea>
+          <div id="markdownPreview" class="markdown-preview" aria-label="Markdown preview" hidden></div>
+        </div>
+      </div>
+    </main>
+          </div>
+          <div id="leftPaneSnapshot" class="split-snapshot" tabindex="0" aria-label="Left document view" hidden>
+            <div id="leftSnapshotContent" class="split-snapshot-content"></div>
+          </div>
+        </div>
+      </section>
+      <div id="splitDivider" class="split-divider" role="separator" aria-orientation="vertical" aria-label="Resize split view" title="Drag to resize · Double-click for 50/50" tabindex="0" hidden></div>
+      <section id="rightPane" class="split-pane" data-side="right" hidden>
+        <div id="rightPaneHeader" class="split-pane-header">
+          <span class="split-pane-side">RIGHT</span>
+          <strong id="rightPaneName" class="split-pane-name"></strong>
+          <button id="rightPaneCloseBtn" class="split-pane-close" type="button" title="Close document" aria-label="Close document in Right View">×</button>
+        </div>
+        <div class="split-pane-body">
+          <div id="rightPaneMount" class="split-live-mount"></div>
+          <div id="rightPaneSnapshot" class="split-snapshot" tabindex="0" aria-label="Right document view">
+            <div id="rightSnapshotContent" class="split-snapshot-content"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span id="statusMessage"></span>
+    <span id="wordCount">0 words</span>
+    <span id="charCount">0 chars</span>
+    <span id="cursorPosition">Ln 1, Col 1</span>
+    <span class="zoom-control"><button id="zoomOutBtn" title="Zoom out">−</button><span id="zoomLabel">100%</span><button id="zoomInBtn" title="Zoom in">+</button></span>
+    <span>v2.9.0</span>
+  </div>
+</div>
+
+<div id="printSurface" aria-hidden="true"></div>
+<div id="recentMenu" class="file-context-menu" role="menu" hidden></div>
+
+
+
+
+<div id="helpMenu" class="file-context-menu help-menu" role="menu" hidden>
+  <button type="button" data-help-section="overview">User Manual <span>F1</span></button>
+  <div class="context-sep"></div>
+  <button type="button" data-help-section="useful-keyboard-shortcuts">Keyboard Shortcuts</button>
+  <button type="button" data-help-section="backup">Backup &amp; Restore</button>
+  <button type="button" data-help-section="recovery-and-unsaved-work">Recovery &amp; Unsaved Work</button>
+  <button type="button" data-help-section="practical-data-safety-recommendations">Data Safety</button>
+  <button type="button" data-help-section="offline-and-privacy-behavior">Offline &amp; Privacy</button>
+</div>
+
+<div id="tabContextMenu" class="file-context-menu tab-context-menu" role="menu" hidden>
+  <button id="tabCloseCtx" type="button">Close</button>
+  <button id="tabCloseOthersCtx" type="button">Close Others</button>
+  <button id="tabCloseRightCtx" type="button">Close Tabs to Right</button>
+  <button id="tabDuplicateCtx" type="button">Duplicate Tab as Unsaved Copy</button>
+  <div id="tabProtectionSep" class="context-sep"></div>
+  <button id="tabProtectCtx" type="button">Password Protect…</button>
+  <button id="tabLockCloseCtx" type="button">Lock &amp; Close</button>
+  <button id="tabChangePasswordCtx" type="button">Change Password…</button>
+  <button id="tabRecoveryKeyCtx" type="button">Recovery Key…</button>
+  <button id="tabRegenerateRecoveryCtx" type="button">Regenerate Recovery Key…</button>
+  <button id="tabRemoveProtectionCtx" type="button">Remove Password Protection…</button>
+  <div class="context-sep"></div>
+  <button id="tabReopenCtx" type="button">Reopen Closed Tab <span>Ctrl+Shift+T</span></button>
+</div>
+<div id="allTabsMenu" class="file-context-menu all-tabs-menu" role="menu" hidden></div>
+
+<div id="filesTreeMenu" class="file-context-menu" role="menu" hidden>
+  <button id="expandAllFoldersBtn" type="button" role="menuitem">Expand All Folders</button>
+  <button id="collapseAllFoldersBtn" type="button" role="menuitem">Collapse All Folders</button>
+</div>
+<div id="filesSortMenu" class="file-context-menu" role="menu" hidden>
+  <button type="button" data-sort="custom">✓ Custom Order</button>
+  <button type="button" data-sort="name-asc">Name A–Z</button>
+  <button type="button" data-sort="name-desc">Name Z–A</button>
+  <button type="button" data-sort="newest">Newest First</button>
+  <button type="button" data-sort="oldest">Oldest First</button>
+</div>
+
+<div id="imageContextMenu" class="file-context-menu" role="menu" hidden>
+  <button id="imageSmallBtn" type="button">Small (25%)</button><button id="imageMediumBtn" type="button">Medium (50%)</button><button id="imageLargeBtn" type="button">Large (75%)</button><button id="imageOriginalBtn" type="button">Original Size</button><button id="imageCustomBtn" type="button">Custom Width…</button>
+  <div class="context-sep"></div><button id="imageLeftBtn" type="button">Align Left</button><button id="imageCenterBtn" type="button">Align Center</button><button id="imageRightBtn" type="button">Align Right</button>
+  <div class="context-sep"></div><button id="imageReplaceBtn" type="button">Replace Image…</button><button id="imageDeleteBtn" type="button" class="danger">Delete Image</button>
+</div>
+<div id="editorContextMenu" class="file-context-menu editor-context-menu" role="menu" hidden>
+  <div id="spellContextSection" class="spell-context-section" hidden>
+    <div id="spellContextWord" class="spell-context-word"></div>
+    <div id="spellSuggestionList" class="spell-suggestion-list"></div>
+    <button id="spellIgnoreBtn" type="button" role="menuitem">Ignore</button>
+    <button id="spellAddDictionaryBtn" type="button" role="menuitem">Add to Dictionary</button>
+    <div class="context-sep"></div>
+  </div>
+  <button id="editorUndoCtx" type="button" role="menuitem">Undo</button>
+  <button id="editorRedoCtx" type="button" role="menuitem">Redo</button>
+  <div class="context-sep"></div>
+  <button id="editorCutCtx" type="button" role="menuitem">Cut</button>
+  <button id="editorCopyCtx" type="button" role="menuitem">Copy</button>
+  <button id="editorPasteCtx" type="button" role="menuitem">Paste</button>
+  <button id="editorPastePlainCtx" type="button" role="menuitem">Paste as Plain Text</button>
+  <div class="context-sep"></div>
+  <button id="editorSelectAllCtx" type="button" role="menuitem">Select All</button>
+  <button id="editorClearFormatCtx" type="button" role="menuitem">Clear Formatting</button>
+  <div class="context-sep"></div>
+  <button id="editorPrintCtx" type="button" role="menuitem">Print</button>
+</div>
+
+<div id="fileContextMenu" class="file-context-menu" role="menu" hidden>
+  <button id="contextOpenBtn" type="button" role="menuitem">Open</button>
+  <button id="contextOpenLeftBtn" type="button" role="menuitem">Open in Left View</button>
+  <button id="contextOpenRightBtn" type="button" role="menuitem">Open in Right View</button>
+  <div id="contextSplitOpenSep" class="context-sep"></div>
+  <button id="contextNewFolderInsideBtn" type="button" role="menuitem">New Folder Inside…</button>
+  <button id="contextRenameBtn" type="button" role="menuitem">Rename</button>
+  <button id="contextDuplicateBtn" type="button" role="menuitem">Duplicate</button>
+  <button id="contextMoveBtn" type="button" role="menuitem">Move to Folder…</button>
+  <div id="contextProtectionSep" class="context-sep"></div>
+  <button id="contextProtectBtn" type="button" role="menuitem">Password Protect…</button>
+  <button id="contextUnlockBtn" type="button" role="menuitem">Unlock…</button>
+  <button id="contextLockCloseBtn" type="button" role="menuitem">Lock &amp; Close</button>
+  <button id="contextChangePasswordBtn" type="button" role="menuitem">Change Password…</button>
+  <button id="contextRecoveryKeyBtn" type="button" role="menuitem">Recovery Key…</button>
+  <button id="contextRegenerateRecoveryBtn" type="button" role="menuitem">Regenerate Recovery Key…</button>
+  <button id="contextRemoveProtectionBtn" type="button" role="menuitem">Remove Password Protection…</button>
+  <div id="contextProtectionExportSep" class="context-sep"></div>
+  <button id="contextExportRtfBtn" type="button" role="menuitem">Export RTF</button>
+  <button id="contextExportTxtBtn" type="button" role="menuitem">Export TXT</button>
+  <button id="contextExportHtmlBtn" type="button" role="menuitem">Export HTML</button>
+  <button id="contextExportMdBtn" type="button" role="menuitem">Export Markdown</button>
+  <button id="contextDeleteBtn" type="button" role="menuitem" class="danger">Delete</button>
+</div>
+
+
+<dialog id="protectionPasswordDialog" class="app-confirm-dialog protection-dialog">
+  <div id="protectionPasswordTitle" class="dialog-head">Password Protect File</div>
+  <div class="dialog-body">
+    <p id="protectionPasswordMessage">Create an individual password for this document.</p>
+    <div class="field">
+      <label for="protectionPasswordInput">Password</label>
+      <input id="protectionPasswordInput" type="password" minlength="7" autocomplete="off" spellcheck="false" />
+    </div>
+    <div id="protectionPasswordConfirmField" class="field">
+      <label for="protectionPasswordConfirmInput">Confirm password</label>
+      <input id="protectionPasswordConfirmInput" type="password" minlength="7" autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="small-note">Passwords are used only in memory and are never stored by Notepad. Use at least 7 characters.</div>
+    <div id="protectionPasswordError" class="protection-error" aria-live="polite"></div>
+  </div>
+  <div class="dialog-actions">
+    <button id="protectionPasswordCancelBtn" type="button">Cancel</button>
+    <button id="protectionPasswordConfirmBtn" type="button" class="primary">Protect</button>
+  </div>
+</dialog>
+
+<dialog id="protectionUnlockDialog" class="app-confirm-dialog protection-dialog">
+  <div id="protectionUnlockTitle" class="dialog-head">Unlock Protected File</div>
+  <div class="dialog-body">
+    <p id="protectionUnlockMessage"></p>
+    <div class="field">
+      <label id="protectionUnlockLabel" for="protectionUnlockInput">Password</label>
+      <input id="protectionUnlockInput" type="password" autocomplete="off" spellcheck="false" />
+    </div>
+    <div id="protectionUnlockNote" class="small-note">The password is used only in memory and is never stored by Notepad.</div>
+    <div id="protectionUnlockError" class="protection-error" aria-live="polite"></div>
+  </div>
+  <div class="dialog-actions protection-unlock-actions">
+    <button id="protectionUnlockCancelBtn" type="button">Cancel</button>
+    <button id="protectionUnlockModeBtn" type="button">Use Recovery Key</button>
+    <button id="protectionUnlockConfirmBtn" type="button" class="primary">Unlock</button>
+  </div>
+</dialog>
+
+<dialog id="recoveryKeyDialog" class="app-confirm-dialog recovery-key-dialog">
+  <div id="recoveryKeyTitle" class="dialog-head">Recovery Key</div>
+  <div class="dialog-body">
+    <p id="recoveryKeyMessage"></p>
+    <label for="recoveryKeyValue">Recovery key</label>
+    <textarea id="recoveryKeyValue" rows="4" readonly spellcheck="false"></textarea>
+    <div class="small-note">Keep this key somewhere separate from the Notepad data. It can unlock this document if the password is forgotten.</div>
+  </div>
+  <div class="dialog-actions recovery-key-actions">
+    <button id="recoveryKeyCopyBtn" type="button">Copy Recovery Key</button>
+    <button id="recoveryKeySaveBtn" type="button">Save Recovery Key…</button>
+    <button id="recoveryKeyDoneBtn" type="button" class="primary">Close</button>
+  </div>
+</dialog>
+
+<dialog id="nameDialog">
+  <div class="dialog-head" id="nameDialogTitle">Save As</div>
+  <div class="dialog-body">
+    <div class="field">
+      <label for="nameInput">File name</label>
+      <input id="nameInput" maxlength="160" autocomplete="off" />
+    </div>
+    <div id="nameDialogNote" class="small-note">This file is stored inside IndexedDB, not as a normal disk file.</div>
+  </div>
+  <div class="dialog-actions">
+    <button id="nameCancelBtn">Cancel</button>
+    <button id="nameConfirmBtn" class="primary">Save</button>
+  </div>
+</dialog>
+
+
+<dialog id="moveDialog">
+  <div class="dialog-head">Move to Folder</div>
+  <div class="dialog-body">
+    <div class="field">
+      <label for="moveFolderSelect">Destination</label>
+      <select id="moveFolderSelect"></select>
+    </div>
+  </div>
+  <div class="dialog-actions">
+    <button id="moveCancelBtn">Cancel</button>
+    <button id="moveConfirmBtn" class="primary">Move</button>
+  </div>
+</dialog>
+
+<dialog id="settingsDialog">
+  <div class="dialog-head">Settings</div>
+  <div class="dialog-body">
+    <div class="settings-grid">
+      <div class="field">
+        <label for="themeSelect">Theme</label>
+        <select id="themeSelect">
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="purple">Purple</option>
+          <option value="emerald">Emerald</option>
+        </select>
+      </div>
+    </div>
+    <label class="checkbox-row"><input id="wrapToggle" type="checkbox" /> Word wrap</label>
+    <label class="checkbox-row"><input id="spellcheckToggle" type="checkbox" /> Spellcheck</label>
+    <label class="checkbox-row"><input id="autoLinksToggle" type="checkbox" /> Automatically recognize clear web URLs and make them clickable/tappable</label>
+    <label class="checkbox-row"><input id="autosaveToggle" type="checkbox" /> Autosave saved documents after a short pause</label>
+    <label class="checkbox-row"><input id="lineNumbersToggle" type="checkbox" /> Show line numbers</label>
+    <div class="small-note">Settings, font-color history, and unsaved drafts are stored locally and included in JSON backups. Font family and size are stored with document formatting.</div>
+  </div>
+  <div class="dialog-actions">
+    <button id="settingsCancelBtn">Cancel</button>
+    <button id="settingsSaveBtn" class="primary">Save Settings</button>
+  </div>
+</dialog>
+
+
+
+<dialog id="backupRestoreDialog" class="backup-restore-dialog">
+  <div class="dialog-head">Backup &amp; Restore</div>
+  <div class="dialog-body backup-restore-body">
+    <section class="backup-restore-section">
+      <div><h3>Backup</h3><p>Create a portable JSON copy of your virtual files, folders, embedded images, settings, drafts, and workspace state.</p></div>
+      <button id="createBackupBtn" type="button" class="primary">Create JSON Backup</button>
+    </section>
+    <section class="backup-restore-section">
+      <div><h3>Restore</h3><p>Choose a Notepad JSON backup. You will review its contents and choose Merge or Replace before anything changes.</p></div>
+      <button id="chooseRestoreBtn" type="button">Restore from JSON…</button>
+    </section>
+    <section class="backup-restore-section restore-safety-section">
+      <div>
+        <h3>Restore Safety</h3>
+        <p id="restoreSafetyStatus">Checking for a restore safety snapshot…</p>
+        <p class="small-note">Undo Last Restore replaces the current Notepad state with the safety snapshot created immediately before the most recent restore. Use it only when you need to roll back that restore.</p>
+      </div>
+      <button id="undoRestoreBtn" type="button" class="danger" disabled>Undo Last Restore…</button>
+    </section>
+  </div>
+  <div class="dialog-actions"><button id="backupRestoreCloseBtn" type="button">Close</button></div>
+</dialog>
+
+<dialog id="restoreInspectorDialog" class="wide-dialog">
+  <div class="dialog-head">Restore Backup</div>
+  <div class="dialog-body">
+    <div id="restoreSummary" class="backup-summary"></div>
+    <div id="restoreWarnings" class="backup-warnings" hidden></div>
+    <div class="field"><label>Restore mode</label><div class="choice-row"><label><input type="radio" name="restoreMode" value="merge" checked> Merge with current data</label><label><input type="radio" name="restoreMode" value="replace"> Replace selected data</label></div></div>
+    <div class="field"><label>Include</label>
+      <label><input id="restoreFilesToggle" type="checkbox" checked> Files & folders</label>
+      <label><input id="restoreDraftsToggle" type="checkbox" checked> Unsaved drafts</label>
+      <label><input id="restoreSettingsToggle" type="checkbox" checked> Settings & workspace state</label>
+    </div>
+    <details id="restoreFileDetails"><summary>Choose individual files/folders</summary><div id="restoreItemList" class="restore-item-list"></div></details>
+    <div class="small-note">A safety snapshot of your current Notepad data is created immediately before any restore.</div>
+  </div>
+  <div class="dialog-actions"><button id="restoreInspectorCancelBtn">Cancel</button><button id="restoreInspectorConfirmBtn" class="primary">Restore</button></div>
+</dialog>
+
+<dialog id="specialCharDialog"><div class="dialog-head">Insert Special Character</div><div class="dialog-body"><div id="specialCharGrid" class="special-char-grid"></div></div><div class="dialog-actions"><button id="specialCharCloseBtn">Close</button></div></dialog>
+<dialog id="documentPropertiesDialog" class="wide-dialog"><div class="dialog-head">Document Properties</div><div class="dialog-body"><div id="documentPropertiesBody" class="properties-grid"></div></div><div class="dialog-actions"><button id="documentPropertiesCloseBtn">Close</button></div></dialog>
+<dialog id="documentStatsDialog"><div class="dialog-head">Document Statistics</div><div class="dialog-body"><div id="documentStatsBody" class="properties-grid"></div></div><div class="dialog-actions"><button id="documentStatsCloseBtn">Close</button></div></dialog>
+<dialog id="dateTimeDialog">
+  <div class="dialog-head">Insert Date/Time</div>
+  <div class="dialog-body"><div class="field"><label for="dateTimeFormat">Format</label><select id="dateTimeFormat"></select></div></div>
+  <div class="dialog-actions"><button id="dateTimeCancelBtn">Cancel</button><button id="dateTimeInsertBtn" class="primary">Insert</button></div>
+</dialog>
+<dialog id="goToLineDialog">
+  <div class="dialog-head">Go to Line</div>
+  <div class="dialog-body"><div class="field"><label for="goToLineInput">Line number</label><input id="goToLineInput" type="number" min="1" step="1" inputmode="numeric" /></div><div id="goToLineNote" class="small-note"></div></div>
+  <div class="dialog-actions"><button id="goToLineCancelBtn">Cancel</button><button id="goToLineConfirmBtn" class="primary">Go</button></div>
+</dialog>
+
+<input id="restoreInput" type="file" accept="application/json,.json" hidden />
+<input id="imageInput" type="file" accept="image/*" hidden />
+<input id="replaceImageInput" type="file" accept="image/*" hidden />
+<input id="importDocInput" type="file" accept=".txt,.html,.htm,.md,.markdown,text/plain,text/html,text/markdown" multiple hidden />
+<div id="toast" role="status" aria-live="polite"></div>
+
+<dialog id="newDocumentDialog" class="new-document-dialog">
+  <div class="dialog-head">New Document</div>
+  <div class="dialog-body">
+    <div class="new-type-grid">
+      <button type="button" data-doc-type="rich"><strong>Rich Text</strong><span>Formatting, colors, images, and fonts</span></button>
+      <button type="button" data-doc-type="plain"><strong>Plain Text</strong><span>Unformatted text</span></button>
+      <button type="button" data-doc-type="markdown"><strong>Markdown</strong><span>Markdown source with rendered Preview</span></button>
+    </div>
+  </div>
+  <div class="dialog-actions"><button id="newDocumentCancelBtn" type="button">Cancel</button></div>
+</dialog>
+
+<dialog id="openFileDialog" class="open-file-dialog">
+  <div class="dialog-head">Open File</div>
+  <div class="dialog-body">
+    <input id="openFileSearch" type="search" placeholder="Search files…" autocomplete="off" aria-label="Search files to open">
+    <div id="openFileList" class="open-file-list" role="listbox" aria-label="Virtual files"></div>
+  </div>
+  <div class="dialog-actions">
+    <button id="openFileCancelBtn" type="button">Cancel</button>
+    <button id="openFileConfirmBtn" type="button" class="primary" disabled>Open</button>
+  </div>
+</dialog>
+
+<dialog id="trashDialog" class="trash-dialog">
+  <div class="dialog-head">Trash</div>
+  <div class="dialog-body">
+    <div class="trash-toolbar">
+      <span id="trashSummary" class="small-note">Items are permanently deleted after 7 days.</span>
+      <button id="emptyTrashBtn" type="button" class="danger">Clear Trash</button>
+    </div>
+    <div id="trashList" class="trash-list"></div>
+  </div>
+  <div class="dialog-actions"><button id="trashCloseBtn" type="button" class="primary">Close</button></div>
+</dialog>
+
+<dialog id="manualDialog" class="manual-dialog" aria-labelledby="manualDialogTitle">
+  <div class="manual-head">
+    <div>
+      <div id="manualDialogTitle" class="manual-title">HTML Notepad User Manual</div>
+      <div class="manual-version">Integrated Help · v2.9.0</div>
+    </div>
+    <button id="manualCloseTopBtn" type="button" class="manual-close" title="Close Manual (Esc)" aria-label="Close Manual">×</button>
+  </div>
+  <div class="manual-tools">
+    <div class="manual-search-wrap">
+      <input id="manualSearch" type="search" placeholder="Search the manual…" autocomplete="off" aria-label="Search manual">
+      <span id="manualSearchStatus" class="small-note" aria-live="polite"></span>
+    </div>
+    <select id="manualSectionSelect" class="manual-section-select" aria-label="Manual section"></select>
+  </div>
+  <div class="manual-layout">
+    <nav id="manualNav" class="manual-nav" aria-label="Manual sections"></nav>
+    <article id="manualContent" class="manual-content" tabindex="0"></article>
+  </div>
+  <div class="manual-footer">
+    <span><kbd>F1</kbd> Help · <kbd>/</kbd> Search · <kbd>Alt+↑</kbd>/<kbd>Alt+↓</kbd> Sections · <kbd>Esc</kbd> Close</span>
+    <button id="manualCloseBtn" type="button" class="primary">Close</button>
+  </div>
+</dialog>
+
+<div id="manualSectionStore" hidden>
+<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 2.9.0</h2>
+<p>HTML Notepad is a self-contained, offline notepad that runs in a web
+browser. It provides tabs, rich-text formatting, folders, embedded
+images, search tools, printing, backups, and session recovery without
+requiring an internet connection.</p>
+<p>The important difference from a conventional text editor is where
+files are stored: <strong>Save</strong> writes documents to HTML
+Notepad’s virtual filesystem in the browser’s IndexedDB storage. It does
+not create a normal file in Windows, macOS, Android, or another
+operating system unless you explicitly export a document or create a
+JSON backup.</p>
+<hr /></section>
+<section data-manual-id="starting-html-notepad" data-manual-title="1. Starting HTML Notepad"><h2>1. Starting HTML Notepad</h2>
+<p>For the standalone edition, open <code>HTML Notepad v2.9.0.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
+<p>A new, empty <strong>Untitled</strong> document is available when
+there is no previous workspace to restore. HTML Notepad also remembers
+the prior session, including open tabs, the active tab, tab order,
+scroll positions, and unsaved drafts.</p>
+<h3>Where your work is stored</h3>
+<p>HTML Notepad uses three kinds of storage:</p>
+<ul>
+<li><strong>IndexedDB</strong> — saved documents, folders, embedded
+images, and restore-safety data.</li>
+<li><strong>localStorage</strong> — settings, unsaved drafts, session
+information, recent files, closed tabs, and other lightweight workspace
+state.</li>
+<li><strong>Normal computer files</strong> — only used when you
+deliberately export a document or download a JSON backup.</li>
+</ul>
+<p>Because IndexedDB and localStorage belong to the browser/profile that
+opened the app, a saved document is not automatically available in
+another browser or on another computer. Use <strong>Backup &amp; Restore</strong>
+to create a portable JSON copy of the Notepad library.</p>
+<div class="manual-callout">
+<strong>Changing computers or laptops:</strong> Before moving to another
+computer, laptop, browser, or browser profile, create a fresh JSON backup
+and save it somewhere that will remain available after the move. The downloaded <strong>.json</strong> file will normally be in your
+browser's configured download location (often the Downloads folder). Find
+that file after the download completes and copy or move it somewhere safe.
+A known location such as <strong>OneDrive</strong> or another reputable
+cloud-storage provider is recommended. On the new computer or browser,
+use <strong>Backup &amp; Restore → Restore from JSON…</strong> and select
+that .json file to restore your notes.
+</div>
+<p>Do not wait for a computer move or a problem before making a backup.
+For notes you care about, create backups fairly often and keep them in a
+safe, known location separate from the browser storage containing the
+working Notepad library.</p>
+<hr /></section>
+<section data-manual-id="main-screen" data-manual-title="2. Main Screen"><h2>2. Main Screen</h2>
+<p>The main screen has four working areas.</p>
+<h3>Top controls</h3>
+<p>The primary document controls are:</p>
+<p><strong>New · Open · Import · Save · Save As · Print ·
+Trash</strong></p>
+<p>Additional controls provide access to the Files drawer, <strong>Backup &amp; Restore</strong>, Settings, <strong>Help</strong>, and other workspace functions.
+<strong>Help ▾</strong> opens quick links into the integrated user
+manual.</p>
+<p>On a narrow mobile screen, only the most commonly used controls are
+shown initially. Use the expand button to reveal the rest. Collapse the
+controls again when you want more room for the document.</p>
+<h3>Formatting toolbar</h3>
+<p>The formatting toolbar contains Undo/Redo, Bold, Italic, Underline,
+Clear Formatting (<code>Tx</code>), the <strong>Edit ▾</strong> menu,
+font and size controls, alignment, lists, indentation, and font-color
+controls.</p>
+<p>On mobile, the less frequently used formatting controls are hidden
+until the formatting row is expanded.</p>
+<h3>Tabs</h3>
+<p>Every open document has a tab. An unsaved or modified document is
+marked as changed until it is saved.</p>
+<p><strong>All Tabs ▾</strong> gives a vertical list of open documents,
+which is useful when enough tabs are open that the tab strip becomes
+crowded.</p>
+<h3>Files drawer</h3>
+<p>Select <strong>Files</strong> to open the virtual filesystem. The
+drawer contains saved files and folders stored in IndexedDB. Closing the
+drawer does not close documents that are already open in tabs.</p>
+<hr /></section>
+<section data-manual-id="creating-opening-and-saving-documents" data-manual-title="3. Creating, Opening, and
+Saving Documents"><h2>3. Creating, Opening, and
+Saving Documents</h2>
+<h3>New</h3>
+<p>Select <strong>New</strong> or press <strong>Ctrl+N</strong> to
+choose the type of document to create:</p>
+<ul>
+<li><strong>Rich Text</strong> — the standard Notepad document with
+fonts, bold/italic/underline, colors, alignment, lists, images, and
+other rich formatting.</li>
+<li><strong>Plain Text</strong> — unformatted text. Rich-text formatting
+controls do not apply.</li>
+<li><strong>Markdown</strong> — raw Markdown source with separate
+<strong>Edit</strong> and <strong>Preview</strong> modes.</li>
+</ul>
+<p>The document type is stored with the document. Notepad does not guess
+that ordinary text is Markdown merely because it contains characters
+such as <code>#</code>, <code>*</code>, or backticks.</p>
+<p>If an untouched empty Untitled tab is already present when you open a
+saved document, HTML Notepad can discard that unused tab automatically
+rather than leaving an unnecessary blank tab behind.</p>
+<h3>Open</h3>
+<p>Select <strong>Open</strong> or press <strong>Ctrl+O</strong> to open
+the <strong>Open File</strong> window. This window lists saved documents
+in the virtual filesystem, shows each document’s folder location, and
+includes a search box. Select a document and choose
+<strong>Open</strong>, or double-click the document in the window.</p>
+<p>The main Open command does not depend on which item happens to be
+selected in the Files drawer.</p>
+<p>You can also double-click a document directly in the Files drawer
+when you are already working there.</p>
+<p>Recent files are tracked by the app. Right-click
+<strong>Open</strong> to show Recent Files; <strong>Ctrl+Alt+O</strong>
+opens the same Recent Files interface.</p>
+<h3>Save</h3>
+<p><strong>Save</strong> stores the current document in IndexedDB.</p>
+<p>The first time an Untitled document is saved, HTML Notepad asks for a
+name. Once saved, later uses of Save update that virtual file.</p>
+<p>Unsaved working documents are kept as local drafts. After a document
+is successfully saved into the virtual filesystem, its temporary
+unsaved-draft copy can be cleared.</p>
+<h3>Save As</h3>
+<p><strong>Save As</strong> creates or targets a separately named
+virtual file. If the requested name conflicts with an existing file,
+HTML Notepad shows an in-app replacement confirmation.</p>
+<h3>Autosave</h3>
+<p>In <strong>Settings</strong>, enable <strong>Autosave saved documents
+after a short pause</strong> if you want changes to already-saved
+documents written automatically after editing settles.</p>
+<p>Autosave does not remove the usefulness of backups. A backup is still
+the portable copy to keep outside the browser’s own storage.</p>
+<hr /></section>
+<section data-manual-id="working-with-tabs" data-manual-title="4. Working with Tabs"><h2>4. Working with Tabs</h2>
+<p>Select a tab to switch documents. HTML Notepad remembers the
+document’s scroll position and cursor/selection state when possible.</p>
+<p>Right-click a tab for:</p>
+<ul>
+<li><strong>Close</strong></li>
+<li><strong>Close Others</strong></li>
+<li><strong>Close Tabs to Right</strong></li>
+<li><strong>Duplicate Tab as Unsaved Copy</strong></li>
+<li><strong>Reopen Closed Tab</strong></li>
+</ul>
+<p>Closing a tab with unsaved changes displays a Notepad-style
+confirmation rather than a browser confirmation box.</p>
+<h3>Duplicate Tab as Unsaved
+Copy</h3>
+<p>This creates an independent unsaved copy of the document. It does
+<strong>not</strong> create two live editors connected to the same saved
+IndexedDB file. This prevents one tab from silently overwriting edits
+made in another.</p>
+<h3>Reopen Closed Tab</h3>
+<p>Use the tab menu or <strong>Ctrl+Shift+T</strong> to reopen a
+recently closed tab. HTML Notepad keeps a short closed-tab history.</p>
+<p>If a closed tab represented modified saved content, recovery behavior
+is designed to avoid silently overwriting the saved file.</p>
+<h3>All Tabs</h3>
+<p>Use <strong>All Tabs ▾</strong> to jump directly to any open
+document. It remains available even when the tab strip is not
+overflowing.</p>
+<hr /></section>
+
+<section data-manual-id="split-view" data-manual-title="4A. Split View"><h2>4A. Split View</h2>
+<p><strong>Split View</strong> is designed for wide desktop and ultrawide displays. It divides the document workspace into left and right sides while keeping one main menu bar and one formatting toolbar.</p>
+<h3>Starting Split View</h3>
+<p>Choose <strong>Split View</strong> while working in a document. The document that was active is placed on the <strong>left</strong>. The <strong>right side starts empty</strong>.</p>
+<p>You do not need to open a second document before entering Split View. Open tabs remain available in the tab bar.</p>
+<h3>Putting a document on a side</h3>
+<p>Drag any open tab from the tab bar and drop it onto the left or right pane. The dropped document becomes the document shown on that side and becomes the active side.</p>
+<p>If that side already contained another document, the previous document simply leaves the pane. It is <strong>not closed</strong>; its tab remains open and can be dragged back into either side later.</p>
+<p>A tab can occupy only one pane at a time. Dragging a tab from one side to the other moves its visible assignment and leaves its former side empty.</p>
+<p>Each occupied split header has an <strong>×</strong> button at its upper-right. This is a real <strong>Close</strong> command for that document tab. Unsaved-change protection still applies. Closing a split document empties that pane; Notepad does not automatically substitute another open tab.</p>
+<p><strong>Split View remains active even if both panes become empty.</strong> Other open tabs stay in the tab bar until you drag or explicitly open one into a pane.</p>
+<p>Tabs currently assigned to the visible panes show a small <strong>L</strong> or <strong>R</strong> marker. Clicking an L/R tab activates that side. Clicking an unassigned tab does not replace either pane; drag it to the side where you want it.</p>
+<h3>Opening files from the Files drawer</h3>
+<p>When Split View is active, double-clicking a saved file in <strong>Files</strong> first tries <strong>Left View</strong>. If Left is occupied, it tries <strong>Right View</strong>. If the file is already visible in either pane, that pane is simply activated.</p>
+<p>If both sides are occupied, Notepad displays its own <strong>Choose Split View</strong> dialog. The <strong>Left Side</strong> and <strong>Right Side</strong> cards show the documents currently displayed there; click the side itself to choose where the new document should open. Both choices use the same neutral appearance. <strong>Cancel</strong> is centered below them. Replacing a view does not close the displaced document; its tab remains open.</p>
+<p>When Split View is not active, Files double-click keeps its normal behavior and opens the document in Single View.</p>
+<p>You can also right-click a saved file and choose <strong>Open in Left View</strong> or <strong>Open in Right View</strong>. These commands explicitly target that pane and start Split View first when necessary.</p>
+<p>While Split View is active, you can also <strong>drag a saved file directly from the Files drawer onto Left View or Right View</strong>, including its header area. The file opens in the side where you drop it. If that side already contains another document, the displaced document remains open as a tab. Dragging a file into a Split View does not move the saved file within the Files tree. Folders cannot be dropped into a document pane.</p>
+<h3>Choosing the active side</h3>
+<p>Only one occupied side is active at a time. The active side has a highlighted header and contains the live editing cursor. Click the other visible document or its header to make that side active.</p>
+<p>All shared commands target the active side: Save, Save As, Print, Find/Replace, formatting controls, Markdown Edit/Preview, zoom, ruler commands, spellcheck, and status information. The main toolbar is deliberately not duplicated.</p>
+<h3>Resizing the two sides</h3>
+<p>Drag the center divider left or right to change how much width each pane receives. <strong>Double-click the divider</strong> to immediately reset the workspace to an even <strong>50/50</strong> split. With keyboard focus on the divider, the Left and Right arrow keys make smaller adjustments.</p>
+<h3>Inactive document</h3>
+<p>The inactive side remains visible and scrollable. Notepad keeps one live editor surface and moves it to whichever occupied side is active; this prevents formatting, spellcheck, selection, and save commands from accidentally operating on both documents.</p>
+<h3>Leaving Split View</h3>
+<p>Choose <strong>Single View</strong> to return to the normal workspace. This is the control that deactivates Split View; closing documents does not. If no document is currently displayed when you choose Single View, Notepad returns to an available open tab or creates a new Untitled document when necessary.</p>
+<p>Split View assignments, empty panes, active side, and divider position are stored with the normal tab session. On a narrow layout, the Split View control is hidden and the workspace is presented in a compact single-pane form, but Notepad does not silently change the saved Split View mode.</p>
+<hr /><p><strong>Split View stability:</strong> pane assignments remain independent from unassigned tabs. Close/delete/session reconciliation clears stale pane references without promoting unrelated tabs, and saved-file drops are handled strictly as open/copy actions rather than Files-tree moves.</p><p>An intentionally empty Split workspace is a supported state. Document-only commands now stop cleanly when no pane contains a document instead of acting on stale hidden editor content, and tab-closing operations refresh the recovery snapshot.</p></section>
+<section data-manual-id="files-and-folders" data-manual-title="5. Files and Folders"><h2>5. Files and Folders</h2>
+<p>The Files drawer is an expandable tree rather than a Windows
+Explorer-style folder browser. Folders expand in place; you do not
+“enter” a folder on a separate screen.</p>
+<h3>Files controls</h3>
+<p>The Files controls include:</p>
+<p><strong>New Folder · Tree ▾ · Import · Sort ▾ · Rename ·
+Delete</strong></p>
+<h3>New Folder</h3>
+<p>Creates a folder in the virtual filesystem.</p>
+<p>Right-click an existing folder and choose <strong>New Folder
+Inside…</strong> to create a nested folder.</p>
+<h3>Tree menu</h3>
+<p><strong>Tree ▾</strong> provides:</p>
+<ul>
+<li>Expand All Folders</li>
+<li>Collapse All Folders</li>
+</ul>
+<p>Expanded/collapsed folder state is remembered between sessions.</p>
+<h3>Sort menu</h3>
+<p><strong>Sort ▾</strong> provides:</p>
+<ul>
+<li><strong>Custom Order</strong> — uses your manual drag order.</li>
+<li><strong>Name A–Z</strong></li>
+<li><strong>Name Z–A</strong></li>
+<li><strong>Newest First</strong></li>
+<li><strong>Oldest First</strong></li>
+</ul>
+<p>Use <strong>Custom Order</strong> when manually rearranging items
+relative to one another. Sorting by another mode changes the displayed
+order without redefining the custom order.</p>
+<h3>Moving items</h3>
+<p>Documents and folders can be moved with drag and drop or with
+<strong>Move to Folder…</strong> from the right-click menu.</p>
+<p>Valid moves include:</p>
+<ul>
+<li>file → folder</li>
+<li>file → Files root</li>
+<li>folder → another folder</li>
+<li>folder → Files root</li>
+</ul>
+<p>HTML Notepad prevents a folder from being moved into itself or one of
+its own descendants.</p>
+<p>If drag and drop is inconvenient—particularly on a touch
+device—right-click the item and use <strong>Move to
+Folder…</strong>.</p>
+<h3>Right-clicking a file</h3>
+<p>The file menu includes actions such as:</p>
+<ul>
+<li>Open</li>
+<li>Rename</li>
+<li>Duplicate</li>
+<li>Move to Folder…</li>
+<li>Export RTF (Rich Text)</li>
+<li>Export TXT</li>
+<li>Export HTML (Rich Text or Markdown)</li>
+<li>Export Markdown (Markdown)</li>
+<li>Delete</li>
+</ul>
+<h3>Right-clicking a folder</h3>
+<p>Folder actions include:</p>
+<ul>
+<li>New Folder Inside…</li>
+<li>Rename</li>
+<li>Move to Folder…</li>
+<li>Delete</li>
+</ul>
+<p>Deleting a folder also deletes its contents. The confirmation dialog
+shows how many contained items will be affected.</p>
+<p>Open tabs representing a deleted saved file are preserved as unsaved
+working copies rather than being silently discarded.</p>
+<hr />
+<h3>Selecting Multiple Files
+and Folders</h3>
+<p>The Files drawer supports desktop-style multi-selection.</p>
+<ul>
+<li>Click an item to select it and establish the selection anchor.</li>
+<li>Hold <strong>Shift</strong> and click another visible item to select
+both items and every visible file or folder between them.</li>
+<li>Hold <strong>Ctrl</strong> on Windows/Linux or
+<strong>Command</strong> on macOS while clicking to add or remove
+individual items from the selection.</li>
+<li>A normal unmodified click returns the selection to one item.</li>
+</ul>
+<p>When several items are selected, the Files header shows the selection
+count. <strong>Rename</strong>, <strong>Move</strong>,
+<strong>Duplicate</strong>, <strong>Open</strong>, and export commands
+remain single-item operations. Dragging also returns the selection to
+the dragged item rather than implying that the entire group will
+move.</p>
+<p><strong>Delete</strong> applies to the entire selection. Before
+anything is moved to Trash, Notepad shows one detailed confirmation
+containing the selected file/folder counts, additional contents inside
+selected folders, the total number of filesystem items affected, and the
+number of open tabs that will close.</p>
+<p>If both a folder and one of its descendants are selected, the
+descendant is not duplicated in Trash; it remains part of the folder’s
+restorable tree.</p>
+<p>With keyboard focus in the Files list, the <strong>Delete</strong>
+key performs the same multi-item Trash action as the Delete button.</p>
+<h3>Trash</h3>
+<p>Deleting a saved file or folder moves it to <strong>Trash</strong>
+instead of permanently erasing it.</p>
+<p>When you delete a saved file that is open in one or more tabs, those
+tabs close automatically. Notepad does not ask a second time whether to
+close them: moving the file to Trash is treated as the deliberate
+deletion action. If an ordinary file has unsaved edits, Notepad captures
+the current editor content into the Trash copy before closing the tab.
+If a password-protected file has unsaved edits, Notepad first saves those
+changes back into its encrypted record so Trash receives ciphertext, not
+the decrypted working copy.</p>
+<p>Open <strong>Trash</strong> from the main toolbar immediately after
+<strong>Print</strong>. Trash opens in its own popup so deleted items
+are kept separate from the normal Files tree.</p>
+<p>Each Trash entry shows when it was deleted and approximately how long
+remains before automatic removal. Items are retained for <strong>7
+days</strong> from deletion.</p>
+<p>From Trash you can:</p>
+<ul>
+<li><strong>Restore</strong> an individual file or folder.</li>
+<li><strong>Delete Permanently</strong> an individual item.</li>
+<li><strong>Clear Trash</strong> to permanently remove everything in
+Trash.</li>
+</ul>
+<p>Permanent deletion and Clear Trash require confirmation because those
+actions cannot be undone through Trash.</p>
+<p>A restored item returns to its original folder if that folder still
+exists. If the original folder no longer exists, the item is restored to
+the Files root. A deleted folder is stored and restored together with
+its contained files and subfolders.</p>
+<p>Trash is included in JSON backups and restore safety snapshots.
+Embedded image assets referenced only by a trashed document are retained
+while that document remains recoverable.</p></section>
+<section data-manual-id="password-protection" data-manual-title="5A. Password Protection"><h2>5A. Password Protection</h2>
+<p>Saved documents can be protected with an <strong>individual password</strong>. Right-click a normal saved file in <strong>Files</strong> and choose <strong>Password Protect…</strong>, or use the same command from the tab menu for an open saved document.</p><p>The minimum password length is <strong>7 characters</strong>. Longer, less predictable passwords are still recommended for stronger protection.</p>
+<p>Protected document contents are encrypted locally with <strong>AES-256-GCM</strong>. The password is used to derive a wrapping key with <strong>PBKDF2-SHA-256</strong>; Notepad does not store the password. The document's text, document type, layout information, and associated embedded images are kept inside the encrypted payload. The file name, folder location, timestamps, and the fact that the file is protected remain visible so Notepad can still display and organize the file while it is locked.</p>
+<h3>Lock indicators</h3>
+<p><strong>🔒</strong> means the saved document is password protected and currently locked. <strong>🔓</strong> means the protected document has been successfully unlocked and its decryption key exists only in the current in-memory session. These indicators appear in Files, tabs, All Tabs, Split View headers, Open/Recent lists, Trash, Restore Inspector, and other document-identification areas.</p>
+<h3>Opening and locking</h3>
+<p>Opening, double-clicking, dragging into Split View, or explicitly opening a locked protected file in Left/Right View displays Notepad's own unlock dialog. Enter the document password or choose <strong>Use Recovery Key</strong>.</p>
+<p>A protected document remains unlocked only while its open tab exists. Closing that tab locks the document by discarding its in-memory key. <strong>Lock &amp; Close</strong> is available from Files and the tab menu; if the protected document has unsaved changes, Lock &amp; Close first saves them back into the encrypted file and then closes the tab.</p>
+<p>Normal tab close behavior is still respected. If a protected document has unsaved changes and you use the ordinary Close command, Notepad asks before discarding those changes. Once the tab closes, the document is locked.</p>
+<h3>Recovery keys</h3>
+<p>When protection is first enabled, Notepad creates a long, random, document-specific <strong>recovery key</strong>. Save it somewhere separate from the Notepad data. If both the password and recovery key are lost, Notepad cannot decrypt the document.</p>
+<p>The recovery key remains <strong>constant for that protection lifecycle</strong>. Changing the document password does not change the recovery key. Use <strong>Regenerate Recovery Key…</strong> only when you deliberately want a new key; regeneration invalidates the previous recovery key for the current protected record and Notepad's current in-app safety state. Removing password protection and later protecting the file again creates a new protection lifecycle and therefore a new recovery key. Historical external backups and already-encrypted Restore Safety snapshots made before a password change or recovery-key regeneration are not retroactively rewritten, so an older credential may still unlock one of those older encrypted historical copies that was created while that credential was valid.</p>
+<p>While a protected document is unlocked, <strong>Recovery Key…</strong> can show the same recovery key again because Notepad stores that recovery secret only in encrypted form inside the protected record. The key can be copied or saved to a text file.</p>
+<h3>Changing or removing protection</h3>
+<p><strong>Change Password…</strong> verifies the existing password or recovery key, then lets you choose a new password. The recovery key stays the same. <strong>Remove Password Protection…</strong> also requires verification and converts the document and its images back to normal IndexedDB storage.</p>
+<p><strong>Save As</strong> from an unlocked protected document creates a <strong>new protected document with a new password and a new recovery key</strong>. Protected files are not duplicated into unencrypted drafts; use Save As when you want an independent protected copy.</p>
+<h3>Backups, Trash, and recovery state</h3>
+<p>New JSON backups store protected files as encrypted records. Their protected images remain inside the encrypted payload rather than appearing as readable image assets. Trash and Restore Safety likewise retain the encrypted record. The active recovery snapshot for an unlocked protected document is itself encrypted with that document's key, so decrypted editor content is not written to localStorage.</p>
+<p>When protection is enabled, Notepad also removes or replaces matching plaintext copies from its own current closed-tab, recovery, and Restore Safety state where possible. Once a Restore Safety copy is already encrypted, it remains historical rather than being rewritten by later credential changes. <strong>External JSON backups created before protection are not retroactively changed.</strong> If an older backup may contain the document in plaintext, create a fresh backup after protection and manage the older backup appropriately.</p>
+<hr /></section>
+
+<section data-manual-id="importing-and-exporting-documents" data-manual-title="6. Importing and Exporting
+Documents"><h2>6. Importing and Exporting
+Documents</h2>
+<h3>Import</h3>
+<p>Use <strong>Import</strong> on the main toolbar, between
+<strong>Open</strong> and <strong>Save</strong>, to bring outside files
+into HTML Notepad without opening the Files drawer. The Import button in
+the Files drawer remains available as an equivalent shortcut.</p>
+<p>Import accepts <code>.txt</code>, <code>.html</code>,
+<code>.htm</code>, <code>.md</code>, and <code>.markdown</code>
+documents. You can select multiple supported files in the computer’s
+file picker.</p>
+<p>Successfully imported documents open immediately as tabs. For a
+single import, that document becomes active immediately. If several
+files are imported together, they open in the selected order and the
+last imported file becomes the active tab.</p>
+<p>The imported extension determines the document type:
+<code>.txt</code> becomes <strong>Plain Text</strong>,
+<code>.md</code>/<code>.markdown</code> becomes
+<strong>Markdown</strong>, and <code>.html</code>/<code>.htm</code>
+becomes <strong>Rich Text</strong>. Notepad does not infer Markdown from
+the contents of a TXT file.</p>
+<p>Imported HTML is cleaned before use. Potentially unsafe or
+inappropriate page elements and attributes are removed rather than being
+allowed to execute inside Notepad. Markdown files retain their Markdown
+source.</p>
+<h3>Export TXT</h3>
+<p>Right-click a saved document and choose <strong>Export TXT</strong>
+to create a plain-text computer file. Rich formatting is removed.</p>
+<h3>Export RTF</h3>
+<p>For a <strong>Rich Text</strong> document, right-click the saved file
+and choose <strong>Export RTF</strong> to create a real
+<code>.rtf</code> file for use outside Notepad. RTF is the most natural
+portable rich-text export for these documents and preserves common text
+formatting, alignment, lists, colors, fonts, and supported embedded
+PNG/JPEG images.</p>
+<h3>Export HTML</h3>
+<p><strong>Export HTML</strong> remains available as a separate format
+for Rich Text and Markdown documents. Rich Text is stored internally as
+HTML, while Markdown is rendered to HTML for this export.</p>
+<p>Normal <strong>Save</strong> still writes to Notepad's IndexedDB
+virtual filesystem. Export commands create ordinary downloadable computer
+files.</p>
+<hr /></section>
+<section data-manual-id="markdown-documents" data-manual-title="7. Markdown Documents"><h2>7. Markdown Documents</h2>
+<p>HTML Notepad can import, edit, preview, save, search, print, back up,
+and export Markdown documents.</p>
+<h3>Importing Markdown</h3>
+<p>Use <strong>Import</strong> and select a <code>.md</code> or
+<code>.markdown</code> file. HTML Notepad recognizes it as a Markdown
+document and preserves the original Markdown source rather than
+converting it into rich-text HTML.</p>
+<p>The imported filename extension is omitted from the virtual file
+name, just as with imported TXT/HTML documents.</p>
+<h3>Edit and Preview</h3>
+<p>Markdown formatting is rendered only in <strong>Preview</strong>.
+<strong>Edit</strong> intentionally displays the literal Markdown
+source, including <code>#</code>, <code>**</code>, backticks, and other
+syntax.</p>
+<p>Markdown tabs display an <strong>Edit / Preview</strong> control in
+the formatting toolbar.</p>
+<ul>
+<li><strong>Edit</strong> shows the raw Markdown source in a monospace
+editor. The source editor uses the full document area.</li>
+<li><strong>Preview</strong> renders the source as a formatted
+document.</li>
+</ul>
+<p>Switching to Preview does not alter or rewrite the Markdown source.
+Return to Edit to continue changing it.</p>
+<p>The built-in offline renderer supports the common Markdown used by
+notes and manuals, including:</p>
+<ul>
+<li>headings (<code>#</code> through <code>######</code>)</li>
+<li>bold and italic text</li>
+<li>strikethrough</li>
+<li>bulleted and numbered lists</li>
+<li>links and HTTP/HTTPS images</li>
+<li>blockquotes</li>
+<li>inline code</li>
+<li>fenced code blocks</li>
+<li>horizontal rules</li>
+</ul>
+<p>Raw HTML in a Markdown file is displayed as text rather than
+executed. The renderer is intentionally self-contained and does not
+download a Markdown library.</p>
+<h3>Saving Markdown</h3>
+<p><strong>Save</strong>, <strong>Save As</strong>, Autosave, recovery,
+tabs, folders, search, backup/restore, and Recent Files work with
+Markdown documents in the same way as other Notepad documents.</p>
+<p>Markdown source is stored as Markdown in IndexedDB. It is not
+silently converted into rich text.</p>
+<h3>Exporting Markdown</h3>
+<p>Right-click a saved Markdown document and choose <strong>Export
+Markdown</strong> to create a normal <code>.md</code> file on the
+computer.</p>
+<p><strong>Export HTML</strong> renders the Markdown and exports the
+rendered result as an HTML document. <strong>Export TXT</strong> exports
+plain text.</p>
+<h3>Printing Markdown</h3>
+<p>Printing a Markdown document prints the rendered Preview rather than
+the raw Markdown punctuation.</p>
+<h3>Markdown formatting toolbar</h3>
+<p>While a Markdown document is in <strong>Edit</strong> mode, the formatting
+toolbar becomes Markdown-aware. Formatting commands change the Markdown source
+itself rather than inserting Rich Text HTML.</p>
+<ul>
+<li><strong>Bold</strong> wraps the selection in <code>**</code> markers, for example <code>**bold text**</code>. <strong>Ctrl+B</strong> does the same.</li>
+<li><strong>Italic</strong> wraps the selection in <code>*</code> markers, for example <code>*italic text*</code>. <strong>Ctrl+I</strong> does the same.</li>
+<li>The bulleted and numbered list buttons add or remove Markdown list markers on the selected line or lines.</li>
+<li>Indent and Outdent adjust Markdown line indentation.</li>
+<li><strong>Markdown ▾</strong> provides Heading 1–6, Blockquote, Strikethrough, Inline Code, Code Block, Link, and Horizontal Rule commands.</li>
+</ul>
+<p>If no text is selected for an inline command, Notepad inserts example text
+inside the Markdown markers and selects it so you can immediately type a
+replacement. Reapplying Bold, Italic, Strikethrough, or Inline Code to text
+already surrounded by the same markers removes those markers.</p>
+<p>Rich Text-only controls such as underline, font family, font size, text
+alignment, and font color are hidden while editing Markdown because standard
+Markdown has no equivalent for them.</p>
+<p><strong>Edit / Preview</strong> is a Markdown-only control. In Preview,
+source-formatting controls are hidden because Preview is read-only rendered
+output. Return to Edit to change Markdown formatting.</p></section>
+<section data-manual-id="editing-and-formatting" data-manual-title="8. Editing and Formatting"><h2>8. Editing and Formatting</h2>
+<p>The document area supports normal text selection and standard browser
+editing shortcuts.</p>
+<h3>Basic formatting</h3>
+<p>Use:</p>
+<ul>
+<li><strong>B</strong> — Bold</li>
+<li><strong>I</strong> — Italic</li>
+<li><strong>U</strong> — Underline</li>
+<li><strong>Tx</strong> — Clear Formatting</li>
+</ul>
+<p><code>Tx</code> removes formatting from selected text while retaining
+the text itself.</p>
+<h3>Fonts and sizes</h3>
+<p>Choose a font from the toolbar. Available choices are local/system
+fonts such as Monospace, Arial, Calibri, Georgia, Tahoma, Times New
+Roman, Trebuchet MS, Verdana, System Sans, and System Serif.</p>
+<p>Font sizes range from 10 through 72.</p>
+<p>Because HTML Notepad is fully offline, it does not download web
+fonts.</p>
+<h3>Alignment and lists</h3>
+<p>The toolbar supports left, center, and right alignment, along with
+bulleted and numbered lists.</p>
+<h3>Indentation and Tab</h3>
+<p>For ordinary text, <strong>Tab</strong> inserts a tab.</p>
+<p>Inside a list:</p>
+<ul>
+<li><strong>Tab</strong> nests the current item.</li>
+<li><strong>Shift+Tab</strong> moves it outward.</li>
+</ul>
+<p>The toolbar also provides explicit Outdent (<code>⇤</code>) and
+Indent (<code>⇥</code>) controls.</p>
+<h3>Font color</h3>
+<p>Font color tools include a quick palette, a custom color wheel,
+brightness adjustment, and recent colors.</p>
+<p>The color history keeps up to 10 recent font colors and can show
+their use within the current document.</p>
+<hr /></section>
+<section data-manual-id="edit-menu" data-manual-title="9. Edit Menu"><h2>9. Edit Menu</h2>
+<p>Select <strong>Edit ▾</strong> for additional document tools.</p>
+<h3>Insert Image…</h3>
+<p>Choose an image from the device and insert it at the current editor
+position.</p>
+<h3>Insert Date/Time…</h3>
+<p>Choose from several local date/time formats and insert the result at
+the cursor.</p>
+<h3>Insert Special Character…</h3>
+<p>Provides a palette of commonly useful symbols such as ©, ®, ™, °, ±,
+em/en dashes, arrows, currency symbols, check marks, card suits, and
+others.</p>
+<h3>Insert Horizontal Line</h3>
+<p>Adds a horizontal divider to the document.</p>
+<h3>Insert Nonbreaking Space</h3>
+<p>Inserts a space that prevents the surrounding text from breaking
+across lines at that position.</p>
+<h3>Change Case</h3>
+<p>Select text and use:</p>
+<ul>
+<li>UPPERCASE</li>
+<li>lowercase</li>
+<li>Title Case</li>
+<li>Sentence case</li>
+</ul>
+<h3>Go to Line…</h3>
+<p>Use the menu or <strong>Ctrl+G</strong> and enter a line number.</p>
+<h3>Document Properties</h3>
+<p>Shows information about the current document, including its name,
+virtual filesystem location, saved/modified state, dates,
+word/character/line counts, approximate document size, and
+embedded-image storage where applicable.</p>
+<h3>Document Statistics</h3>
+<p>Provides document counts and, when text is selected, statistics for
+the selection.</p>
+<hr /></section>
+<section data-manual-id="images" data-manual-title="10. Images"><h2>10. Images</h2>
+<p>HTML Notepad can keep images inside its offline data store.</p>
+<h3>Inserting an image</h3>
+<p>Use <strong>Edit ▾ → Insert Image…</strong>. On phones and tablets,
+the operating system’s image/file picker is used.</p>
+<p>Where the browser exposes an image through the clipboard, pasting the
+image directly into the editor is also supported.</p>
+<p>Large images may trigger a Notepad dialog offering to optimize the
+image to reduce storage use. You may instead keep the original-quality
+image.</p>
+<h3>Selecting and editing an
+image</h3>
+<p>Click or tap an image to select it. Right-click or use the platform’s
+context-menu gesture for image actions:</p>
+<ul>
+<li>Small (25%)</li>
+<li>Medium (50%)</li>
+<li>Large (75%)</li>
+<li>Original Size</li>
+<li>Custom Width…</li>
+<li>Align Left</li>
+<li>Align Center</li>
+<li>Align Right</li>
+<li>Replace Image…</li>
+<li>Delete Image</li>
+</ul>
+<p>Custom Width accepts a pixel or percentage width.</p>
+<p>Embedded images are stored separately from the document’s text markup
+in IndexedDB and are included in Notepad backups.</p>
+<hr /></section>
+<section data-manual-id="find-and-replace" data-manual-title="11. Find and Replace"><h2>11. Find and Replace</h2>
+<p>Use <strong>Ctrl+F</strong> for Find and <strong>Ctrl+H</strong> for
+Replace.</p>
+<p>The Find/Replace tools provide:</p>
+<ul>
+<li>previous/next match navigation</li>
+<li>match count</li>
+<li>Replace</li>
+<li>Replace All</li>
+<li>case-sensitive matching</li>
+</ul>
+<p>The Files search field is separate from document Find. Files search
+can look through saved file names and document text and can display a
+matching snippet.</p>
+<hr /><p><strong>Rich Text Find/Replace:</strong> replacements are mapped back to the document DOM and preserve surrounding formatting instead of flattening the document. Matches can span inline formatting boundaries such as bold-to-normal text.</p><p>Rich Text Find/Replace treats line breaks and embedded objects such as images as structural boundaries, so a replacement cannot accidentally consume them. A match that spans inline formatting inherits the formatting at its starting character, and empty formatting shells are removed afterward.</p></section>
+<section data-manual-id="right-click-menu-in-the-editor" data-manual-title="12. Right-Click Menu and Spellcheck"><h2>12. Right-Click Menu and Spellcheck</h2>
+<h3>Built-in U.S. English spellcheck</h3>
+<p>Rich Text documents use Notepad's built-in offline U.S. English spellchecker. Misspelled words are marked with a red wavy underline. The spellchecker checks words only; it does not evaluate grammar, punctuation, writing style, or sentence structure.</p>
+<p>Right-click a red-underlined word to place spelling actions at the top of Notepad's normal editor menu. The menu can show suggested corrections plus <strong>Ignore</strong> and <strong>Add to Dictionary</strong>.</p>
+<ul>
+<li>Select a suggested spelling to replace that occurrence.</li>
+<li><strong>Ignore</strong> stops flagging that word in the current open document session.</li>
+<li><strong>Add to Dictionary</strong> permanently accepts the word in Notepad's custom dictionary.</li>
+</ul>
+<p>The custom dictionary is stored with Notepad settings and is included in JSON backups/restores. This makes personally added names, abbreviations, technical terms, and other accepted words portable with the rest of the Notepad setup.</p>
+<p>Normal right-clicks on correctly spelled Rich Text open the usual Notepad editor menu: Undo, Redo, Cut, Copy, Paste, Paste as Plain Text, Select All, Clear Formatting, and Print. Right-clicking an embedded image opens the image menu.</p>
+<h3>Plain Text and Markdown</h3>
+<p>Plain Text and Markdown use the browser's native text-area spellcheck. Their exact spelling suggestions and dictionary options therefore depend on the browser and operating system.</p>
+<h3>Dictionary</h3>
+<p>The built-in U.S. English dictionary is derived from the SCOWL/English Hunspell word lists maintained by Kevin Atkinson and contributors. The embedded dictionary is entirely local; spellchecking does not send document text anywhere or require an internet connection.</p>
+<p>Dictionary data copyright 2000–2026 Kevin Atkinson and contributors. Permission is granted to use, copy, modify, distribute, and sell SCOWL or word lists created from it without fee when the copyright and permission notice are retained in supporting documentation. The dictionary is provided “as is” without express or implied warranty.</p>
+<hr /></section>
+<section data-manual-id="ruler-indents-and-tab-stops" data-manual-title="13. Ruler, Indents, and Tab
+Stops"><h2>13. Ruler, Indents, and Tab
+Stops</h2>
+<p>On desktop-sized screens, HTML Notepad displays rulers around the
+document.</p>
+<p>The horizontal ruler supports:</p>
+<ul>
+<li>left indent</li>
+<li>first-line indent</li>
+<li>right indent</li>
+<li>custom tab stops</li>
+</ul>
+<p>Drag an indent marker to adjust it. Click the ruler to add a custom
+tab stop; click an existing custom tab stop to remove it.</p>
+<p>Rulers are hidden on small mobile layouts to preserve editing
+space.</p>
+<hr /></section>
+<section data-manual-id="zoom-and-status-information" data-manual-title="14. Zoom and Status
+Information"><h2>14. Zoom and Status
+Information</h2>
+<p>Use the status-bar zoom controls or:</p>
+<ul>
+<li><strong>Ctrl++</strong> — Zoom in</li>
+<li><strong>Ctrl+-</strong> — Zoom out</li>
+<li><strong>Ctrl+0</strong> — Reset zoom</li>
+</ul>
+<p>Zoom ranges from 50% to 200%.</p>
+<p>The status area can show document word/character information and the
+current line/column position. When text is selected, selection
+statistics are shown as appropriate.</p>
+<hr /></section>
+<section data-manual-id="line-numbers" data-manual-title="15. Line Numbers"><h2>15. Line Numbers</h2>
+<p>Enable <strong>Show line numbers</strong> in Settings. The gutter is
+shown for Rich Text and Plain Text documents and for Markdown while in
+<strong>Edit</strong> mode. Markdown Preview omits source line numbers
+because they would not align with the rendered document.</p>
+<p>Line numbers represent logical text lines, not every visual line
+created by word wrapping. A long paragraph that wraps onto several
+screen rows may therefore still be one numbered line. Rich Text paragraph
+or block formatting does not create extra “phantom” line numbers.</p>
+<hr /></section>
+<section data-manual-id="printing" data-manual-title="16. Printing"><h2>16. Printing</h2>
+<p>Select <strong>Print</strong> or press <strong>Ctrl+P</strong>.</p>
+<p>HTML Notepad creates a print-only copy of the current document so the
+app interface—toolbars, tabs, Files drawer, and other controls—does not
+appear on the printed page.</p>
+<p>The browser’s own print dialog controls the printer, paper options,
+margins, and Save as PDF functionality.</p>
+<p>If the print preview shows a date, document title/path, or page
+number at the edges, those are browser-generated headers and footers.
+Disable <strong>Headers and footers</strong> in the browser’s print
+options if you do not want them.</p>
+<hr /></section>
+<section data-manual-id="settings" data-manual-title="17. Settings"><h2>17. Settings</h2>
+<p>Open <strong>Settings</strong> to configure:</p>
+<h3>Theme</h3>
+<ul>
+<li><strong>System</strong> — follows the browser/operating-system light or dark preference.</li>
+<li><strong>Light</strong> — the standard light workspace.</li>
+<li><strong>Dark</strong> — the standard dark workspace.</li>
+<li><strong>Purple</strong> — a deep violet workspace with lavender accents.</li>
+<li><strong>Emerald</strong> — a deep emerald-green workspace with restrained gold highlights.</li>
+</ul>
+<h3>Word wrap</h3>
+<p>Controls whether long text wraps within the editor.</p>
+<h3>Spellcheck</h3>
+<p>Enables or disables spelling checks. Rich Text uses Notepad's built-in offline U.S. English dictionary; Plain Text and Markdown use the browser's native spellchecker. Spellcheck covers words only, not grammar or punctuation.</p>
+<h3>Automatically recognize
+clear web URLs</h3>
+<p>When enabled, clearly recognizable <code>http://</code>,
+<code>https://</code>, and <code>www.</code> addresses can become
+clickable links.</p>
+<p>This feature recognizes text locally. It does not contact those
+websites merely to recognize the URL.</p>
+<h3>Autosave saved
+documents after a short pause</h3>
+<p>Automatically saves changes to documents that already have a saved
+virtual file.</p>
+<h3>Show line numbers</h3>
+<p>Shows the logical line-number gutter in editable document views. Markdown Preview intentionally hides it.</p>
+<p>Settings are kept locally and are included in Notepad’s JSON
+backup.</p>
+<hr /></section>
+<section data-manual-id="backup" data-manual-title="18. Backup"><h2>18. Backup</h2>
+<p>Select <strong>Backup &amp; Restore</strong> on the main toolbar to open the backup and recovery hub.</p>
+<p><strong>Create JSON Backup</strong> creates a portable <strong>.json</strong>
+backup file and downloads it through your web browser.</p>
+<div class="manual-callout">
+<strong>Where did my backup go?</strong> The backup is a file whose name ends
+in <strong>.json</strong>. In most browser setups it will appear in the
+computer's <strong>Downloads</strong> folder, but the exact location depends
+on where your browser is configured to save downloads. If your browser asks
+where to save downloaded files, it will instead be wherever you chose.
+After the download finishes, locate the .json file and copy or move it to a
+safe, known location if you intend to rely on it as a backup. OneDrive,
+another reputable cloud-storage provider, an external drive, or another
+appropriately maintained location can be used. Leaving the only backup in
+Downloads is not recommended for important notes.
+</div>
+<p>A current JSON backup can contain:</p>
+<ul><li>virtual files and folders</li><li>embedded image assets</li><li>settings</li><li>unsaved drafts</li><li>session/workspace state</li><li>expanded-folder state</li><li>recent files</li><li>closed-tab state</li><li>recovery information</li></ul>
+<p>Password-protected documents remain encrypted inside the JSON backup. Their passwords are not included. Restoring the backup preserves the encrypted record, and the same document password or recovery key is required to open it.</p>
+<p>A backup is the best protection against clearing browser storage, changing browser profiles, moving to another computer, or other loss of local browser data.</p>
+<p><strong>Back up periodically if the documents matter.</strong> Keep those
+backups in a safe, known location. OneDrive or another reputable
+cloud-storage provider is a good choice because the backup remains
+available if the current computer is replaced, lost, damaged, or otherwise
+unavailable.</p>
+<p>If you plan to switch computers/laptops, browsers, or browser profiles,
+make a fresh JSON backup <strong>before</strong> the switch and verify that
+you can access that backup from the new environment.</p><hr /></section>
+<section data-manual-id="restore" data-manual-title="19. Restore"><h2>19. Restore</h2>
+<p>Open <strong>Backup &amp; Restore</strong> and select <strong>Restore from JSON…</strong> to choose a compatible Notepad backup.</p>
+<p>Before changing data, HTML Notepad opens a <strong>Restore Backup</strong> inspector showing the backup date, source version, counts, and validation warnings.</p>
+<h3>Restore modes</h3><p><strong>Merge with current data</strong> keeps the current library and adds restored data where possible. <strong>Replace selected data</strong> replaces the selected categories with the backup contents.</p>
+<h3>What to restore</h3><p>You can independently include Files &amp; folders, Unsaved drafts, and Settings &amp; workspace state. The inspector also allows individual files/folders to be selected.</p>
+<h3>Restore Safety</h3><p>Immediately before any restore, Notepad creates a one-level safety snapshot of the current state. The <strong>Restore Safety</strong> area in Backup &amp; Restore reports whether that snapshot exists.</p>
+<p><strong>Undo Last Restore…</strong> is disabled when no snapshot exists. When available, it replaces the current Notepad state with the pre-restore snapshot after a confirmation. This is intended only to roll back a problematic restore and is not a substitute for normal JSON backups.</p><hr /></section>
+<section data-manual-id="recovery-and-unsaved-work" data-manual-title="20. Recovery and Unsaved Work"><h2>20. Recovery and Unsaved Work</h2>
+<p>HTML Notepad maintains working-state information separately from
+saved virtual files.</p>
+<p>The <code>htmlNotepad.recovery</code> record follows the
+<strong>currently active document</strong>. It is refreshed when you
+switch or open documents and while you work. The snapshot identifies the
+active document and keeps its current editor content and state even when
+that document is presently clean/saved. This recovery copy is separate
+from the authoritative saved file in IndexedDB.</p>
+<p>This helps with:</p>
+<ul>
+<li>unsaved Untitled documents</li>
+<li>the active saved document’s current working state</li>
+<li>session restoration</li>
+<li>recently closed tabs</li>
+<li>recovery snapshots</li>
+<li>restoring the active workspace after reopening the app</li>
+</ul>
+<p>For password-protected documents, the active recovery snapshot is encrypted with that document's in-memory encryption key. It stores ciphertext rather than readable protected document content. After the protected tab is closed, the in-memory key is discarded.</p>
+<p>Recovery is a safety feature, not a substitute for Save or Backup. If
+a document is important, save it to the virtual filesystem and maintain
+an external JSON backup.</p></section>
+<section data-manual-id="useful-keyboard-shortcuts" data-manual-title="21. Useful Keyboard Shortcuts"><h2>21. Useful Keyboard Shortcuts</h2>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Shortcut</th>
+<th style="text-align: left;">Action</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Ctrl+N</td>
+<td style="text-align: left;">New document</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ctrl+O</td>
+<td style="text-align: left;">Open</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Ctrl+Alt+O</td>
+<td style="text-align: left;">Recent Files</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ctrl+S</td>
+<td style="text-align: left;">Save</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Ctrl+Shift+S</td>
+<td style="text-align: left;">Save As</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ctrl+P</td>
+<td style="text-align: left;">Print</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">F1</td>
+<td style="text-align: left;">Open integrated Help / User Manual</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ctrl+F</td>
+<td style="text-align: left;">Find</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Ctrl+H</td>
+<td style="text-align: left;">Replace</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ctrl+G</td>
+<td style="text-align: left;">Go to Line</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Ctrl+B</td>
+<td style="text-align: left;">Bold</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ctrl+I</td>
+<td style="text-align: left;">Italic</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Ctrl+U</td>
+<td style="text-align: left;">Underline</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ctrl+\</td>
+<td style="text-align: left;">Clear Formatting</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Ctrl+Shift+7</td>
+<td style="text-align: left;">Numbered list</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ctrl+Shift+8</td>
+<td style="text-align: left;">Bulleted list</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Ctrl+Shift+T</td>
+<td style="text-align: left;">Reopen closed tab</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ctrl++</td>
+<td style="text-align: left;">Zoom in</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Ctrl+-</td>
+<td style="text-align: left;">Zoom out</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ctrl+0</td>
+<td style="text-align: left;">Reset zoom</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Tab</td>
+<td style="text-align: left;">Insert tab / nest list item</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Shift+Tab</td>
+<td style="text-align: left;">Outdent / unnest list item</td>
+</tr>
+</tbody>
+</table>
+<p>Standard browser/editor shortcuts such as Ctrl+C, Ctrl+X, Ctrl+V,
+Ctrl+A, Ctrl+Z, and Ctrl+Y continue to work where supported by the
+browser.</p>
+<p>While the Manual popup is open:</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Shortcut</th>
+<th style="text-align: left;">Action</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">/</td>
+<td style="text-align: left;">Focus manual search</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ctrl+F</td>
+<td style="text-align: left;">Focus manual search</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Alt+Up</td>
+<td style="text-align: left;">Previous manual section</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Alt+Down</td>
+<td style="text-align: left;">Next manual section</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Escape</td>
+<td style="text-align: left;">Close the Manual popup</td>
+</tr>
+</tbody>
+</table>
+<hr /></section>
+<section data-manual-id="mobile-use" data-manual-title="22. Mobile Use"><h2>22. Mobile Use</h2>
+<p>HTML Notepad is designed to remain usable on narrow screens.</p>
+<p>On mobile:</p>
+<ul>
+<li>toolbar rows start in a compact state</li>
+<li>expand buttons reveal less frequently used controls</li>
+<li>controls wrap onto additional rows instead of requiring horizontal
+toolbar scrolling</li>
+<li>the Files drawer overlays the editor rather than permanently
+shrinking it</li>
+<li>rulers are hidden</li>
+<li>image selection and the device’s file/photo picker remain
+available</li>
+</ul>
+<p>Browser and operating-system behavior varies for clipboard and
+long-press context menus. When a custom clipboard command is
+unavailable, use the device/browser’s normal copy and paste
+controls.</p>
+<p>In Rich Text documents, normal keyboard/browser Copy and Cut use Notepad's
+own selection payload. Notepad keeps an in-memory fingerprint of that payload so
+same-app paste does not depend on browser or operating-system clipboard metadata.
+For Rich Text boundary handling, the clipboard's plain-text representation is
+the ground truth for the exact number of leading and trailing blank lines.
+Notepad removes alternate empty HTML boundary nodes and then recreates precisely
+that many blank lines in one canonical representation, preventing both phantom
+lines and doubled intentional blank lines.</p>
+<hr /><p><strong>Mobile layout:</strong> At phone-sized widths, document rulers are
+hidden and the editor uses the full available document area. The status bar is
+also simplified: word count, character count, and zoom controls are hidden to
+avoid horizontal scrolling. Cursor position and essential status information
+remain available. The full status bar and zoom controls remain available on
+larger screens.</p><p><strong>Mobile Open:</strong> The dedicated <strong>Open</strong> top-bar
+button is hidden at phone-sized widths to conserve space. Use <strong>Files</strong>
+to open saved documents, or <strong>All Tabs</strong> to switch among documents
+that are already open. The Open command itself is still available, including its
+keyboard shortcut when a keyboard is connected.</p><p>On phone-width layouts, the file-controls expander uses a compact icon-width button so the primary Files/New/Import/Save controls have more room to remain on one row.</p></section>
+<section data-manual-id="offline-and-privacy-behavior" data-manual-title="23. Offline and Privacy
+Behavior"><h2>23. Offline and Privacy
+Behavior</h2>
+<p>HTML Notepad is designed to work without online connectivity.</p>
+<p>The application itself does not need a server, external JavaScript
+library, web font, or cloud account. Saved files remain in browser
+storage unless you explicitly export them.</p>
+<p>Password protection also operates entirely locally through the browser's built-in Web Crypto API. Notepad does not transmit passwords, recovery keys, document keys, or protected document contents. Normal unprotected files remain readable in local browser storage; use per-file password protection when encryption at rest is required.</p>
+<p>A recognized or manually created hyperlink can still open a website
+if you choose to activate it; that is separate from the Notepad
+application’s own offline storage behavior.</p>
+<hr /></section>
+<section data-manual-id="practical-data-safety-recommendations" data-manual-title="24. Practical Data-Safety
+Recommendations"><h2>24. Practical Data-Safety
+Recommendations</h2>
+<p>For everyday use:</p>
+<ol type="1">
+<li><strong>Save important documents</strong> rather than relying
+indefinitely on an Untitled draft.</li>
+<li>Enable <strong>Autosave</strong> if you prefer saved documents to
+update automatically while working.</li>
+<li>Create a <strong>JSON Backup</strong> periodically and keep it
+somewhere outside the browser’s storage.</li>
+<li>Create another backup before clearing browser data, changing
+browsers/profiles, or moving to another device.</li>
+<li>Use the Restore Inspector rather than assuming a backup should
+completely replace the current library.</li>
+<li>Keep especially important documents in another format as well when
+appropriate, using Export RTF, Export TXT, Export HTML, Print, or Save as PDF.</li>
+</ol>
+<hr /></section>
+<section data-manual-id="notes-about-browser-storage" data-manual-title="25. Notes About Browser
+Storage"><h2>25. Notes About Browser
+Storage</h2>
+<p>The virtual filesystem is intentionally different from a normal disk
+folder. This gives HTML Notepad a consistent local filesystem-like
+interface while remaining a single standalone HTML application.</p>
+<p>However, browser storage can be removed if browser/site data is
+cleared. Private/incognito modes may also have different persistence
+rules and are not a good place for long-term Notepad storage.</p>
+<p>The JSON backup exists specifically to give you a portable copy
+outside that browser-managed storage.</p>
+<hr /></section>
+<section data-manual-id="document-type-indicators" data-manual-title="26. Document Type Indicators"><h2>26. Document Type Indicators</h2>
+<p>Saved files and open tabs show a small type indicator:
+<strong>RICH</strong> for Notepad rich text, <strong>TXT</strong> for
+plain text, and <strong>MD</strong> for Markdown. These indicators
+describe the internal document type; they do not cause automatic format
+conversion.</p>
+<hr /></section>
+<section data-manual-id="integrated-help-and-user-manual" data-manual-title="27. Integrated Help and User
+Manual"><h2>27. Integrated Help and User
+Manual</h2>
+<p>The user manual is built directly into HTML Notepad. Select
+<strong>Help ▾</strong> and then <strong>User Manual</strong>, or press
+<strong>F1</strong>, to open it.</p>
+<p>The Manual popup is separate from the editing workspace. A section
+list provides direct access to every major topic, and the search box
+filters that list using both section titles and section contents. The
+Help menu also contains shortcuts that open frequently used sections
+directly, including Keyboard Shortcuts, Backup and Restore, Data Safety,
+and Offline and Privacy information.</p>
+<p>On desktop, the section navigator remains visible beside the manual.
+On narrower screens, use the section selector at the top of the
+popup.</p>
+<p>The manual is part of the standalone HTML file and is available
+completely offline. It is updated along with the application. A separate
+Markdown manual is not required for normal releases.</p>
+<p>Manual navigation shortcuts are shown at the bottom of the popup.
+Press <strong>/</strong> or <strong>Ctrl+F</strong> to focus manual
+search, <strong>Alt+Up</strong> or <strong>Alt+Down</strong> to move
+between sections, and <strong>Escape</strong> to close the popup.</p>
+<hr />
+<p><em>HTML Notepad User Manual — v2.9.0</em></p></section>
+
+<section data-manual-id="pwa-and-standalone-builds" data-manual-title="28. PWA and Standalone Builds"><h2>28. PWA and Standalone Builds</h2>
+<p>Version 2.9.0 is published in two forms that share the same application code and features.</p>
+<ul>
+<li><strong>Standalone HTML:</strong> <code>HTML Notepad v2.9.0.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
+<li><strong>Modular/PWA:</strong> the GitHub build uses <code>index.html</code>, <code>assets/styles.css</code>, <code>assets/app.js</code>, <code>manifest.webmanifest</code>, icons, and <code>sw.js</code>. Host the folder over HTTPS (for example with GitHub Pages or Cloudflare Pages) to make it installable and to allow the service worker to cache the application shell for offline launches.</li>
+</ul>
+<p>The hosted PWA does not upload Notepad documents. Saved documents, folders, images, settings, and drafts continue to use browser-local IndexedDB and localStorage. The hosting server supplies the application files themselves.</p>
+<div class="manual-callout"><strong>Moving between builds:</strong> browser storage is scoped to the page origin. A library created in a locally opened standalone file will not automatically appear in the hosted PWA, and vice versa. Use <strong>Backup &amp; Restore</strong> to move the Notepad library between them.</div>
+<p>The repository includes <code>tools/build_standalone.py</code>. Run it after changing the modular HTML, CSS, JavaScript, or icons to regenerate the single-file standalone edition from the same source files.</p>
+<hr /></section>
+</div>
+
+<dialog id="appConfirmDialog" class="app-confirm-dialog">
+  <div id="appConfirmTitle" class="dialog-head">Confirm</div>
+  <div id="appConfirmMessage" class="dialog-body"></div>
+  <div class="dialog-actions">
+    <button id="appConfirmCancelBtn" type="button">Cancel</button>
+    <button id="appConfirmOkBtn" type="button" class="primary">OK</button>
+  </div>
+</dialog>
+
+<dialog id="splitOverrideDialog" class="app-confirm-dialog">
+  <div class="dialog-head">Choose Split View</div>
+  <div class="dialog-body">
+    <p id="splitOverrideMessage"></p>
+    <div class="split-override-current">
+      <button id="splitOverrideLeftChoice" class="split-override-choice" type="button">
+        <strong>Left Side</strong>
+        <span id="splitOverrideLeftName"></span>
+      </button>
+      <button id="splitOverrideRightChoice" class="split-override-choice" type="button">
+        <strong>Right Side</strong>
+        <span id="splitOverrideRightName"></span>
+      </button>
+    </div>
+  </div>
+  <div class="dialog-actions split-override-actions">
+    <button id="splitOverrideCancelBtn" type="button">Cancel</button>
+  </div>
+</dialog>
+
+<script src="./assets/app.js" defer></script>
+
+</body>
+</html>
