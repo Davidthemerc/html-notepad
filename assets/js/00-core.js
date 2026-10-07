@@ -1,4 +1,4 @@
-  const APP_VERSION = '2.9.3';
+  const APP_VERSION = '2.9.4';
   const DB_NAME = 'HTMLNotepadDB';
   const DB_VERSION = 3;
   const FILE_STORE = 'files';
@@ -314,4 +314,4 @@
     colorHistory: [],
     customDictionary: []
   };
-  let settings = loadSettings();
+  let settings = null; // Initialized by startup after all runtime scripts have loaded.

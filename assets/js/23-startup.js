@@ -3,6 +3,9 @@
   // ===========================================================================
 
   async function init() {
+    // Cross-file initialization must happen here, after all ordered runtime
+    // scripts have executed. This preserves the old single-script hoisting behavior.
+    settings = loadSettings();
     setupManifest();
     setupPwaRuntime();
     buildColorPalette();
