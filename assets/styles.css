@@ -1454,6 +1454,7 @@ body.markdown-preview-active #markdownToolsWrap{display:none!important}
 /* v2.8.2 — protected-file passwords may be seven characters or longer. */
 /* v2.8.3 — compact mobile top-bar expander for narrow phone widths. */
 /* v2.9.0 — modular GitHub/PWA build plus generated single-file standalone. */
+/* v2.9.1 — responsibility-based JavaScript source modules with generated runtime bundle. */
 .protection-indicator{
   display:inline-block;
   margin-right:4px;

@@ -1,7 +1,8 @@
+/* GENERATED FILE — edit src/js/*.js, then run tools/build.py. */
 (() => {
   'use strict';
 
-  const APP_VERSION = '2.9.0';
+  const APP_VERSION = '2.9.1';
   const DB_NAME = 'HTMLNotepadDB';
   const DB_VERSION = 3;
   const FILE_STORE = 'files';
@@ -170275,7 +170276,6 @@ $tec
     resolve(side === 'left' || side === 'right' ? side : null);
   }
 
-
   // ===========================================================================
   // PASSWORD-PROTECTED DOCUMENTS (AES-256-GCM)
   // ===========================================================================
@@ -171378,7 +171378,6 @@ $tec
   async function deleteSelected() {
     await moveSelectionToTrash();
   }
-
 
   // ===========================================================================
   // TRASH
@@ -173663,7 +173662,6 @@ $tec
     }, 0);
   }
 
-
   // ===========================================================================
   // INTEGRATED HELP / USER MANUAL
   // ===========================================================================
@@ -174539,6 +174537,7 @@ $tec
       newTab('', { name: 'Untitled', dirty: false });
     }
   }
+
 
   init();
 })();
