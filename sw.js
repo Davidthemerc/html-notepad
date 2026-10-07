@@ -1,4 +1,4 @@
-const CACHE_NAME = 'html-notepad-v2.9.2';
+const CACHE_NAME = 'html-notepad-v2.9.3';
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -34,16 +34,20 @@ const APP_SHELL = [
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
-  self.skipWaiting();
+  // Deliberately do not call skipWaiting() here. An installed update waits
+  // until the user chooses Restart Now or all old-version clients close.
+});
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(
       keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-    ))
+    )).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', event => {

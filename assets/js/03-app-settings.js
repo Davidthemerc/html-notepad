@@ -23,12 +23,77 @@
     } catch {}
   }
 
+  let pwaWaitingWorker = null;
+  let pwaReloadForUpdate = false;
+
+  function showPwaUpdateNotice(worker) {
+    if (!worker) return;
+    pwaWaitingWorker = worker;
+    const notice = $('pwaUpdateNotice');
+    if (notice) notice.hidden = false;
+  }
+
+  function hidePwaUpdateNotice() {
+    const notice = $('pwaUpdateNotice');
+    if (notice) notice.hidden = true;
+  }
+
+  async function restartIntoPwaUpdate() {
+    const worker = pwaWaitingWorker;
+    if (!worker) return;
+    const restartBtn = $('pwaUpdateRestartBtn');
+    if (restartBtn) restartBtn.disabled = true;
+    try {
+      // Capture the live editor first. Draft/session storage is synchronous;
+      // recovery may include encrypted protected-document state, so await it.
+      captureEditorIntoActive();
+      persistUnsavedDrafts();
+      persistSession();
+      await saveRecoverySnapshot();
+      pwaReloadForUpdate = true;
+      worker.postMessage({ type: 'SKIP_WAITING' });
+    } catch (error) {
+      console.error('Notepad could not prepare the update restart.', error);
+      pwaReloadForUpdate = false;
+      if (restartBtn) restartBtn.disabled = false;
+      toast('Could not prepare the update. Keep working and try again.');
+    }
+  }
+
   function setupPwaRuntime() {
     if (document.documentElement.dataset.build !== 'modular') return;
     if (!('serviceWorker' in navigator) || !window.isSecureContext) return;
-    navigator.serviceWorker.register('./sw.js').catch(error => {
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!pwaReloadForUpdate) return;
+      pwaReloadForUpdate = false;
+      window.location.reload();
+    });
+
+    navigator.serviceWorker.register('./sw.js').then(registration => {
+      // A waiting worker can already exist when the app is reopened.
+      if (registration.waiting && navigator.serviceWorker.controller) {
+        showPwaUpdateNotice(registration.waiting);
+      }
+
+      registration.addEventListener('updatefound', () => {
+        const installing = registration.installing;
+        if (!installing) return;
+        installing.addEventListener('statechange', () => {
+          if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+            showPwaUpdateNotice(registration.waiting || installing);
+          }
+        });
+      });
+
+      // Ask the browser to check promptly when Notepad opens.
+      registration.update().catch(() => {});
+    }).catch(error => {
       console.warn('Notepad service worker registration failed.', error);
     });
+
+    $('pwaUpdateRestartBtn')?.addEventListener('click', restartIntoPwaUpdate);
+    $('pwaUpdateLaterBtn')?.addEventListener('click', hidePwaUpdateNotice);
   }
 
   function uid() {

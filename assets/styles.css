@@ -381,6 +381,32 @@
   .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .checkbox-row { display: flex; align-items: center; gap: 8px; }
 
+  /* PWA update notice: intentionally independent of the transient toast. */
+  #pwaUpdateNotice {
+    position: fixed;
+    right: 16px;
+    bottom: 42px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: min(460px, calc(100vw - 24px));
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--panel);
+    color: var(--text);
+    box-shadow: var(--shadow);
+  }
+  #pwaUpdateNotice[hidden] { display: none !important; }
+  #pwaUpdateNotice .pwa-update-copy { min-width: 0; flex: 1 1 auto; }
+  #pwaUpdateNotice strong { display: block; font-size: 13px; }
+  #pwaUpdateNotice span { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); }
+  #pwaUpdateNotice .pwa-update-actions { display: flex; gap: 6px; flex: 0 0 auto; }
+  @media (max-width:760px) {
+    #pwaUpdateNotice { left: 12px; right: 12px; bottom: 40px; max-width: none; }
+  }
+
   #toast {
     position: fixed;
     right: 16px;
