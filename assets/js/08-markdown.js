@@ -44,7 +44,7 @@
    * rather than attempting the full CommonMark specification. Raw HTML is escaped, so a
    * Markdown file cannot inject script or page markup into Notepad's preview.
    */
-  function renderMarkdown(source) {
+  function renderMarkdown(source, { interactive = false } = {}) {
     const lines = String(source ?? '').replace(/\r\n?/g, '\n').split('\n');
     let html = '', paragraph = [], listType = null, inCode = false, code = [], quote = [];
 
@@ -124,7 +124,7 @@
         if (listType !== wanted) { closeList(); listType = wanted; html += `<${wanted}>`; }
         const task = ul && (ul[1].match(/^\[([ xX])\]\s+(.*)$/));
         html += task
-          ? `<li class="task-item"><input type="checkbox" disabled${task[1] === ' ' ? '' : ' checked'}> ${markdownInline(task[2])}</li>`
+          ? `<li class="task-item"><input type="checkbox"${interactive ? ` data-task-line="${lineIndex}"` : ' disabled'}${task[1] === ' ' ? '' : ' checked'}> ${markdownInline(task[2])}</li>`
           : `<li>${markdownInline((ul || ol)[1])}</li>`;
         continue;
       }
@@ -404,7 +404,7 @@
     el.markdownPreviewBtn.classList.toggle('active', previewing);
     syncMarkdownFormattingUi();
     if (previewing) {
-      el.markdownPreview.innerHTML = renderMarkdown(el.markdownSource.value);
+      el.markdownPreview.innerHTML = renderMarkdown(el.markdownSource.value, { interactive: true });
       el.markdownPreview.scrollTop = 0;
     } else if (focus) setTimeout(() => el.markdownSource.focus(), 0);
     syncLineNumberVisibility();

@@ -378,8 +378,23 @@
       markDirtyFromEditor();
       updateLineNumbers();
       if (currentTab()?.markdownMode === 'preview') {
-        el.markdownPreview.innerHTML = renderMarkdown(el.markdownSource.value);
+        el.markdownPreview.innerHTML = renderMarkdown(el.markdownSource.value, { interactive: true });
       }
+    });
+    // Ticking a task-list checkbox in the preview rewrites that line's [ ]/[x] in the source.
+    el.markdownPreview.addEventListener('change', event => {
+      const box = event.target.closest?.('input[data-task-line]');
+      if (!box || currentTab()?.markdownMode !== 'preview') return;
+      const lines = el.markdownSource.value.replace(/\r\n?/g, '\n').split('\n');
+      const index = Number(box.dataset.taskLine);
+      const updated = lines[index]?.replace(/^(\s*[-+*]\s+)\[[ xX]\]/, `$1[${box.checked ? 'x' : ' '}]`);
+      if (updated === undefined || updated === lines[index]) { box.checked = !box.checked; return; }
+      lines[index] = updated;
+      el.markdownSource.value = lines.join('\n');
+      const top = el.markdownPreview.scrollTop;
+      markDirtyFromEditor();
+      el.markdownPreview.innerHTML = renderMarkdown(el.markdownSource.value, { interactive: true });
+      el.markdownPreview.scrollTop = top;
     });
     el.markdownSource.addEventListener('keyup', updateCounts);
     el.markdownSource.addEventListener('click', updateCounts);
