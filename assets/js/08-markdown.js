@@ -64,7 +64,34 @@
       quote = [];
     };
 
-    for (const line of lines) {
+    const splitRow = row => {
+      let r = row.trim();
+      if (r.startsWith('|')) r = r.slice(1);
+      if (r.endsWith('|') && !r.endsWith('\\|')) r = r.slice(0, -1);
+      return r.split(/(?<!\\)\|/).map(cell => cell.trim().replace(/\\\|/g, '|'));
+    };
+    const isTableDivider = row => /^\s*\|?\s*:?-{1,}:?\s*(\|\s*:?-{1,}:?\s*)*\|?\s*$/.test(row) && row.includes('-') && (row.includes('|') || /^\s*:?-+:?\s*$/.test(row) === false);
+
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+      const line = lines[lineIndex];
+      if (!inCode && line.includes('|') && lineIndex + 1 < lines.length && isTableDivider(lines[lineIndex + 1])) {
+        const header = splitRow(line), divider = splitRow(lines[lineIndex + 1]);
+        if (header.length === divider.length) {
+          flushParagraph(); closeList(); flushQuote();
+          const align = divider.map(c => c.startsWith(':') && c.endsWith(':') ? 'center' : c.endsWith(':') ? 'right' : c.startsWith(':') ? 'left' : '');
+          const cell = (tag, text, i) => `<${tag}${align[i] ? ` style="text-align:${align[i]}"` : ''}>${markdownInline(text)}</${tag}>`;
+          html += `<table><thead><tr>${header.map((t, i) => cell('th', t, i)).join('')}</tr></thead><tbody>`;
+          lineIndex += 2;
+          while (lineIndex < lines.length && lines[lineIndex].trim() && lines[lineIndex].includes('|')) {
+            const cells = splitRow(lines[lineIndex]);
+            html += `<tr>${header.map((_, i) => cell('td', cells[i] ?? '', i)).join('')}</tr>`;
+            lineIndex++;
+          }
+          html += '</tbody></table>';
+          lineIndex--;
+          continue;
+        }
+      }
       if (/^```/.test(line)) {
         flushParagraph(); closeList(); flushQuote();
         if (inCode) {
@@ -95,7 +122,10 @@
         flushParagraph();
         const wanted = ul ? 'ul' : 'ol';
         if (listType !== wanted) { closeList(); listType = wanted; html += `<${wanted}>`; }
-        html += `<li>${markdownInline((ul || ol)[1])}</li>`;
+        const task = ul && (ul[1].match(/^\[([ xX])\]\s+(.*)$/));
+        html += task
+          ? `<li class="task-item"><input type="checkbox" disabled${task[1] === ' ' ? '' : ' checked'}> ${markdownInline(task[2])}</li>`
+          : `<li>${markdownInline((ul || ol)[1])}</li>`;
         continue;
       }
       closeList();

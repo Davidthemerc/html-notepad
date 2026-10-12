@@ -697,6 +697,7 @@ body.files-dragging #rootDropZone:not([hidden]){display:block}
 #markdownPreview pre code{background:none;padding:0}
 #markdownPreview table{border-collapse:collapse;max-width:100%} #markdownPreview th,#markdownPreview td{border:1px solid var(--border);padding:.35em .55em;text-align:left}
 #markdownPreview img{max-width:100%}
+#markdownPreview li.task-item{list-style:none;margin-left:-1.4em}#markdownPreview li.task-item input{margin-right:.4em}
 body.markdown-active #formatToolbar .rich-only:not(.md-supported){display:none!important}
 @media(max-width:760px){.markdown-mode-toggle button{min-width:52px;padding-left:7px;padding-right:7px}}
 
