@@ -223,6 +223,15 @@
 
       row.addEventListener('click', event => {
         const modifiedSelection = event.shiftKey || event.ctrlKey || event.metaKey;
+        // On touch devices a second tap on the already-selected file opens it.
+        const reopenTap = item.type !== 'folder' && !modifiedSelection &&
+          selectedFileIds.size === 1 && selectedFileIds.has(item.id) &&
+          !!window.matchMedia?.('(hover: none) and (pointer: coarse)').matches;
+        if (reopenTap) {
+          setSingleFileSelection(item.id);
+          openFileFromFilesDoubleClick(item.id);
+          return;
+        }
         selectFileRow(item.id, event);
 
         // Preserve the familiar folder click-to-expand behavior only for an ordinary
