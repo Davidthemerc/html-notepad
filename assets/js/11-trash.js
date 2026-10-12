@@ -258,12 +258,16 @@
     let drafts=[];try{drafts=JSON.parse(localStorage.getItem(LS_DRAFTS)||'[]');}catch{}
     const draftMap=new Map((Array.isArray(drafts)?drafts:[]).map(d=>[d.draftId,d]));
     let protectedSkipped=0;
+    // The recovery snapshot tracks unsaved edits to the active (already saved) document.
+    const recoverySnap=(readJsonStorage(LS_RECOVERY,[])||[]).find(r=>r&&!r.protected&&r.fileId&&r.dirty&&typeof r.content==='string');
 
     for(const st of session.tabs){
       if(st.fileId){
         const f=await idbGet(st.fileId);if(!f)continue;
         if(isProtectedRecord(f)){protectedSkipped++;continue;}
-        tabs.push({tabId:st.tabId||uid(),fileId:f.id,name:f.name,content:f.content||'',dirty:false,isNew:false,createdAt:f.createdAt,updatedAt:f.updatedAt,parentId:f.parentId||null,layout:f.layout||{left:0,first:0,right:0,tabs:[48]},scrollTop:st.scrollTop||0,selection:st.selection||null,docType:f.docType||st.docType||'rich',markdownMode:(f.docType||st.docType)==='markdown'?'preview':'edit',protected:false});
+        // Prefer unsaved edits captured after the last save of this file (autosave off, crash, or quick reload).
+        const recovered=recoverySnap&&recoverySnap.fileId===f.id&&Date.parse(recoverySnap.capturedAt)>=Date.parse(f.updatedAt||0)&&recoverySnap.content!==(f.content||'');
+        tabs.push({tabId:st.tabId||uid(),fileId:f.id,name:f.name,content:recovered?recoverySnap.content:(f.content||''),dirty:!!recovered,isNew:false,createdAt:f.createdAt,updatedAt:f.updatedAt,parentId:f.parentId||null,layout:f.layout||{left:0,first:0,right:0,tabs:[48]},scrollTop:st.scrollTop||0,selection:st.selection||null,docType:f.docType||st.docType||'rich',markdownMode:(f.docType||st.docType)==='markdown'?'preview':'edit',protected:false});
       } else {
         const d=draftMap.get(st.tabId);if(!d)continue;
         tabs.push({tabId:st.tabId||uid(),fileId:null,name:d.name||st.name||'Untitled',content:d.content||'',dirty:true,isNew:true,createdAt:d.createdAt||new Date().toISOString(),updatedAt:d.updatedAt||new Date().toISOString(),parentId:null,layout:d.layout||{left:0,first:0,right:0,tabs:[48]},scrollTop:st.scrollTop||0,selection:st.selection||null,docType:d.docType||st.docType||'rich',markdownMode:d.markdownMode||st.markdownMode||'edit',protected:false});
@@ -316,8 +320,12 @@
         docType:t.docType||'rich',
         markdownMode:t.markdownMode||'edit'
       }));
-    if (drafts.length) localStorage.setItem(LS_DRAFTS, JSON.stringify(drafts));
-    else localStorage.removeItem(LS_DRAFTS);
+    try {
+      if (drafts.length) localStorage.setItem(LS_DRAFTS, JSON.stringify(drafts));
+      else localStorage.removeItem(LS_DRAFTS);
+    } catch (error) {
+      console.warn('Could not persist unsaved drafts (storage full or blocked):', error);
+    }
   }
 
   function restoreDrafts() {

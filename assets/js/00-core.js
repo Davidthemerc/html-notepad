@@ -253,7 +253,12 @@
       localStorage.removeItem(key);
       return;
     }
-    localStorage.setItem(key, JSON.stringify(value));
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      // Quota exceeded or storage blocked: autosave/recovery are best-effort and must never break editing flows.
+      console.warn(`Could not write ${key} to localStorage:`, error);
+    }
   }
 
   let db = null;

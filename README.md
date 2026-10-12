@@ -1,17 +1,16 @@
-# HTML Notepad v2.9.0
+# HTML Notepad v2.9.9
 
-HTML Notepad is an offline-first browser notepad with an IndexedDB-backed virtual filesystem. Version 2.9.0 provides both a modular hosted/PWA build and the traditional single-file standalone build.
+HTML Notepad is an offline-first browser notepad with an IndexedDB-backed virtual filesystem. Version 2.9.9 provides both a modular hosted/PWA build and the traditional single-file standalone build.
 
 ## Repository layout
 
 - `index.html` — modular app shell for GitHub Pages / Cloudflare Pages
 - `assets/styles.css` — application styles
-- `assets/app.js` — application logic
+- `assets/js/` — application logic, split into ordered scripts (`00-core.js` … `23-startup.js`)
 - `manifest.webmanifest` — install metadata
 - `sw.js` — offline application-shell cache
 - `icons/` — PWA icons
-- `standalone/HTML Notepad v2.9.0.html` — generated single-file edition
-- `tools/build_standalone.py` — regenerates the standalone file from the modular source
+- `HTML Notepad v2.9.x.html` — single-file standalone editions (files are stored with a literal `%20` in their names)
 
 ## GitHub Pages
 
@@ -28,16 +27,6 @@ The service worker caches the application shell so the installed app can launch 
 Documents are not uploaded to the host by HTML Notepad. Saved documents, folders, images, drafts, settings, and session data remain in the browser's IndexedDB/localStorage for that origin. The server only hosts the application files.
 
 A local standalone file and a hosted PWA use different browser storage origins, so their Notepad libraries do **not** automatically share data. Use **Backup & Restore** to transfer a library between them.
-
-## Rebuild the standalone edition
-
-From the repository root:
-
-```bash
-python tools/build_standalone.py
-```
-
-This recreates `standalone/HTML Notepad v2.9.0.html` from `index.html`, `assets/styles.css`, `assets/app.js`, and the local icon files.
 
 ## Offline behavior
 

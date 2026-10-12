@@ -23,20 +23,20 @@
 
   function markdownInline(source) {
     let text = escapeHtmlText(source);
-    const codeSpans = [];
-    text = text.replace(/`([^`\n]+)`/g, (_, code) => {
-      const token = `@@MD_CODE_${codeSpans.length}@@`;
-      codeSpans.push(`<code>${code}</code>`);
-      return token;
-    });
-    text = text.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g, '<img alt="$1" src="$2">');
-    text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    // Stash code spans, images and link tags behind placeholders (no Markdown-significant
+    // characters) so emphasis rules cannot alter them, e.g. underscores in URLs or target="_blank".
+    const stash = [];
+    const hold = html => `\uE000${stash.push(html) - 1}\uE001`;
+    text = text.replace(/`([^`\n]+)`/g, (_, code) => hold(`<code>${code}</code>`));
+    text = text.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g, (_, alt, src) => hold(`<img alt="${alt}" src="${src}">`));
+    text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+)\)/g,
+      (_, label, href) => hold(`<a href="${href}" target="_blank" rel="noopener noreferrer">`) + label + hold('</a>'));
     text = text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
                .replace(/__([^_\n]+)__/g, '<strong>$1</strong>')
                .replace(/~~([^~\n]+)~~/g, '<del>$1</del>')
                .replace(/(^|[^\*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
                .replace(/(^|[^_])_([^_\n]+)_/g, '$1<em>$2</em>');
-    return text.replace(/@@MD_CODE_(\d+)@@/g, (_, index) => codeSpans[Number(index)] || '');
+    return text.replace(/\uE000(\d+)\uE001/g, (_, index) => stash[Number(index)] || '');
   }
 
   /*
@@ -449,7 +449,7 @@
       },
       tabs:tabs.map(t=>({tabId:t.tabId,fileId:t.fileId||null,name:t.name,dirty:!!t.dirty,scrollTop:t.scrollTop||0,selection:t.selection||null,docType:t.protected?'protected':(t.docType||'rich'),markdownMode:t.markdownMode||'edit',protected:!!t.protected}))
     };
-    localStorage.setItem(LS_SESSION,JSON.stringify(payload));
+    try{localStorage.setItem(LS_SESSION,JSON.stringify(payload));}catch(error){console.warn('Could not persist session:',error);}
   }
 
   function restoreTabView(tab){

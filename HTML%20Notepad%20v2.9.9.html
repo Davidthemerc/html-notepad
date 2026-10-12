@@ -3382,7 +3382,12 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
       localStorage.removeItem(key);
       return;
     }
-    localStorage.setItem(key, JSON.stringify(value));
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      // Quota exceeded or storage blocked: autosave/recovery are best-effort and must never break editing flows.
+      console.warn(`Could not write ${key} to localStorage:`, error);
+    }
   }
 
   let db = null;
@@ -172063,20 +172068,20 @@ $tec
 
   function markdownInline(source) {
     let text = escapeHtmlText(source);
-    const codeSpans = [];
-    text = text.replace(/`([^`\n]+)`/g, (_, code) => {
-      const token = `@@MD_CODE_${codeSpans.length}@@`;
-      codeSpans.push(`<code>${code}</code>`);
-      return token;
-    });
-    text = text.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g, '<img alt="$1" src="$2">');
-    text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    // Stash code spans, images and link tags behind placeholders (no Markdown-significant
+    // characters) so emphasis rules cannot alter them, e.g. underscores in URLs or target="_blank".
+    const stash = [];
+    const hold = html => `\uE000${stash.push(html) - 1}\uE001`;
+    text = text.replace(/`([^`\n]+)`/g, (_, code) => hold(`<code>${code}</code>`));
+    text = text.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g, (_, alt, src) => hold(`<img alt="${alt}" src="${src}">`));
+    text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+)\)/g,
+      (_, label, href) => hold(`<a href="${href}" target="_blank" rel="noopener noreferrer">`) + label + hold('</a>'));
     text = text.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
                .replace(/__([^_\n]+)__/g, '<strong>$1</strong>')
                .replace(/~~([^~\n]+)~~/g, '<del>$1</del>')
                .replace(/(^|[^\*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
                .replace(/(^|[^_])_([^_\n]+)_/g, '$1<em>$2</em>');
-    return text.replace(/@@MD_CODE_(\d+)@@/g, (_, index) => codeSpans[Number(index)] || '');
+    return text.replace(/\uE000(\d+)\uE001/g, (_, index) => stash[Number(index)] || '');
   }
 
   /*
@@ -172489,7 +172494,7 @@ $tec
       },
       tabs:tabs.map(t=>({tabId:t.tabId,fileId:t.fileId||null,name:t.name,dirty:!!t.dirty,scrollTop:t.scrollTop||0,selection:t.selection||null,docType:t.protected?'protected':(t.docType||'rich'),markdownMode:t.markdownMode||'edit',protected:!!t.protected}))
     };
-    localStorage.setItem(LS_SESSION,JSON.stringify(payload));
+    try{localStorage.setItem(LS_SESSION,JSON.stringify(payload));}catch(error){console.warn('Could not persist session:',error);}
   }
 
   function restoreTabView(tab){
@@ -174898,12 +174903,16 @@ $tec
     let drafts=[];try{drafts=JSON.parse(localStorage.getItem(LS_DRAFTS)||'[]');}catch{}
     const draftMap=new Map((Array.isArray(drafts)?drafts:[]).map(d=>[d.draftId,d]));
     let protectedSkipped=0;
+    // The recovery snapshot tracks unsaved edits to the active (already saved) document.
+    const recoverySnap=(readJsonStorage(LS_RECOVERY,[])||[]).find(r=>r&&!r.protected&&r.fileId&&r.dirty&&typeof r.content==='string');
 
     for(const st of session.tabs){
       if(st.fileId){
         const f=await idbGet(st.fileId);if(!f)continue;
         if(isProtectedRecord(f)){protectedSkipped++;continue;}
-        tabs.push({tabId:st.tabId||uid(),fileId:f.id,name:f.name,content:f.content||'',dirty:false,isNew:false,createdAt:f.createdAt,updatedAt:f.updatedAt,parentId:f.parentId||null,layout:f.layout||{left:0,first:0,right:0,tabs:[48]},scrollTop:st.scrollTop||0,selection:st.selection||null,docType:f.docType||st.docType||'rich',markdownMode:(f.docType||st.docType)==='markdown'?'preview':'edit',protected:false});
+        // Prefer unsaved edits captured after the last save of this file (autosave off, crash, or quick reload).
+        const recovered=recoverySnap&&recoverySnap.fileId===f.id&&Date.parse(recoverySnap.capturedAt)>=Date.parse(f.updatedAt||0)&&recoverySnap.content!==(f.content||'');
+        tabs.push({tabId:st.tabId||uid(),fileId:f.id,name:f.name,content:recovered?recoverySnap.content:(f.content||''),dirty:!!recovered,isNew:false,createdAt:f.createdAt,updatedAt:f.updatedAt,parentId:f.parentId||null,layout:f.layout||{left:0,first:0,right:0,tabs:[48]},scrollTop:st.scrollTop||0,selection:st.selection||null,docType:f.docType||st.docType||'rich',markdownMode:(f.docType||st.docType)==='markdown'?'preview':'edit',protected:false});
       } else {
         const d=draftMap.get(st.tabId);if(!d)continue;
         tabs.push({tabId:st.tabId||uid(),fileId:null,name:d.name||st.name||'Untitled',content:d.content||'',dirty:true,isNew:true,createdAt:d.createdAt||new Date().toISOString(),updatedAt:d.updatedAt||new Date().toISOString(),parentId:null,layout:d.layout||{left:0,first:0,right:0,tabs:[48]},scrollTop:st.scrollTop||0,selection:st.selection||null,docType:d.docType||st.docType||'rich',markdownMode:d.markdownMode||st.markdownMode||'edit',protected:false});
@@ -174956,8 +174965,12 @@ $tec
         docType:t.docType||'rich',
         markdownMode:t.markdownMode||'edit'
       }));
-    if (drafts.length) localStorage.setItem(LS_DRAFTS, JSON.stringify(drafts));
-    else localStorage.removeItem(LS_DRAFTS);
+    try {
+      if (drafts.length) localStorage.setItem(LS_DRAFTS, JSON.stringify(drafts));
+      else localStorage.removeItem(LS_DRAFTS);
+    } catch (error) {
+      console.warn('Could not persist unsaved drafts (storage full or blocked):', error);
+    }
   }
 
   function restoreDrafts() {
