@@ -1521,3 +1521,21 @@ body.markdown-preview-active #markdownToolsWrap{display:none!important}
   color:var(--muted);
   font-size:12px;
 }
+
+/* v2.9.7 — reserve an intrinsic row for Find/Replace above the ruler.
+   Earlier fixed grid templates placed the find bar inside the ruler-height row. */
+.editor-shell:has(> #findBar:not([hidden])) {
+  grid-template-rows: auto var(--ruler-height) minmax(0,1fr) !important;
+}
+body.markdown-active .editor-shell:has(> #findBar:not([hidden])),
+body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
+  grid-template-rows: auto minmax(0,1fr) !important;
+}
+#findBar { min-height: 40px; box-sizing: border-box; align-content: center; }
+@media (max-width:760px), (hover:none) and (pointer:coarse) {
+  .editor-shell:has(> #findBar:not([hidden])),
+  body.markdown-active .editor-shell:has(> #findBar:not([hidden])),
+  body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
+    grid-template-rows: auto minmax(0,1fr) !important;
+  }
+}

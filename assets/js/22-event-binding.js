@@ -423,6 +423,8 @@
     el.justifyLeftBtn.addEventListener('click', () => exec('justifyLeft', true));
     el.justifyCenterBtn.addEventListener('click', () => exec('justifyCenter', true));
     el.justifyRightBtn.addEventListener('click', () => exec('justifyRight', true));
+    el.unorderedListBtn.addEventListener('pointerdown', rememberRichListSelection);
+    el.orderedListBtn.addEventListener('pointerdown', rememberRichListSelection);
     el.unorderedListBtn.addEventListener('click', runUnorderedList);
     el.orderedListBtn.addEventListener('click', runOrderedList);
     el.outdentBtn.addEventListener('click', runOutdent);

@@ -62,6 +62,8 @@
 
   function setupPwaRuntime() {
     if (document.documentElement.dataset.build !== 'modular') return;
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' &&
+        location.hostname !== '127.0.0.1') return;
     if (!('serviceWorker' in navigator) || !window.isSecureContext) return;
 
     navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -92,8 +94,8 @@
       console.warn('Notepad service worker registration failed.', error);
     });
 
-    $('pwaUpdateRestartBtn')?.addEventListener('click', restartIntoPwaUpdate);
-    $('pwaUpdateLaterBtn')?.addEventListener('click', hidePwaUpdateNotice);
+    document.getElementById('pwaUpdateRestartBtn')?.addEventListener('click', restartIntoPwaUpdate);
+    document.getElementById('pwaUpdateLaterBtn')?.addEventListener('click', hidePwaUpdateNotice);
   }
 
   function uid() {

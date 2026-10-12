@@ -158,7 +158,7 @@
     const value = source.value;
     const selectionStart = source.selectionStart;
     const selectionEnd = source.selectionEnd;
-    const start = value.lastIndexOf('\n', Math.max(0, selectionStart - 1)) + 1;
+    const start = value.lastIndexOf('\n', selectionStart - 1) + 1;
     let effectiveEnd = selectionEnd;
     if (effectiveEnd > start && value[effectiveEnd - 1] === '\n') effectiveEnd--;
     const nextBreak = value.indexOf('\n', effectiveEnd);
@@ -266,14 +266,70 @@
     else if (!isMarkdownTab()) exec('italic', true);
   }
 
+  let pendingRichListSelection = null;
+  function rememberRichListSelection() {
+    if (isSourceTab() || !currentTab()) return;
+    const selection = window.getSelection();
+    if (!selection || !selection.rangeCount) return;
+    const range = selection.getRangeAt(0);
+    if (el.editor.contains(range.commonAncestorContainer)) pendingRichListSelection = range.cloneRange();
+  }
+  // A blank paragraph is a separator, not an empty list item. Split the
+  // browser-created list around empty LI elements, keeping adjacent list
+  // numbering continuous with the HTML `start` attribute.
+  function separateEmptyRichListItems() {
+    const lists = Array.from(el.editor.querySelectorAll('ul, ol'));
+    for (const list of lists) {
+      if (!list.isConnected || !list.parentNode) continue;
+      const items = Array.from(list.children);
+      if (!items.some(item => item.tagName === 'LI' && !item.textContent.trim() && !item.querySelector('img, video, audio, input'))) continue;
+      const ordered = list.tagName === 'OL';
+      let ordinal = ordered ? (Number(list.getAttribute('start')) || 1) : 0;
+      let segment = null;
+      const parent = list.parentNode;
+      for (const item of items) {
+        if (item.tagName !== 'LI') continue;
+        if (!item.textContent.trim() && !item.querySelector('img, video, audio, input')) {
+          segment = null;
+          const paragraph = document.createElement('p');
+          paragraph.appendChild(document.createElement('br'));
+          parent.insertBefore(paragraph, list);
+        } else {
+          if (!segment) {
+            segment = list.cloneNode(false);
+            if (ordered) segment.setAttribute('start', String(ordinal));
+            parent.insertBefore(segment, list);
+          }
+          segment.appendChild(item);
+          if (ordered) ordinal += 1;
+        }
+      }
+      list.remove();
+    }
+  }
+
+  function runRichListCommand(command) {
+    if (!requireActiveDocument()) return;
+    const range = pendingRichListSelection;
+    pendingRichListSelection = null;
+    if (range && el.editor.contains(range.commonAncestorContainer)) {
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+    exec(command, true);
+    separateEmptyRichListItems();
+    markDirtyFromEditor();
+  }
+
   function runUnorderedList() {
     if (isMarkdownEditing()) markdownTransformLines('unordered');
-    else if (!isMarkdownTab()) exec('insertUnorderedList', true);
+    else if (!isMarkdownTab()) runRichListCommand('insertUnorderedList');
   }
 
   function runOrderedList() {
     if (isMarkdownEditing()) markdownTransformLines('ordered');
-    else if (!isMarkdownTab()) exec('insertOrderedList', true);
+    else if (!isMarkdownTab()) runRichListCommand('insertOrderedList');
   }
 
   function runIndent() {
