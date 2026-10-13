@@ -16,6 +16,7 @@
     bindEvents();
     try {
       db = await openDb();
+      await loadStorageOverflow();
       await purgeExpiredTrash();
       await refreshRestoreSafetyUi();
       await refreshFiles();

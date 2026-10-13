@@ -1,4 +1,4 @@
-  const APP_VERSION = '3.0.1';
+  const APP_VERSION = '3.1.0';
   const DB_NAME = 'HTMLNotepadDB';
   const DB_VERSION = 3;
   const FILE_STORE = 'files';
@@ -147,6 +147,7 @@
     filesSortMenuBtn: $('filesSortMenuBtn'),
     importDocBtn: $('importDocBtn'),
     importDocInput: $('importDocInput'),
+    importFolderInput: $('importFolderInput'),
     renameBtn: $('renameBtn'),
     deleteBtn: $('deleteBtn'),
     statusMessage: $('statusMessage'),
@@ -239,10 +240,17 @@
     findCloseBtn: $('findCloseBtn')
   };
 
+  // localStorage is small (~5 MB). When a write does not fit (e.g. recovery data for a very
+  // large document) the value overflows into IndexedDB. overflowCache mirrors those values so
+  // the synchronous read/write helpers below keep working; it is loaded once at startup.
+  const OVERFLOW_PREFIX = 'ls:';
+  const overflowCache = new Map();
+
   function readJsonStorage(key, fallback) {
     try {
       const raw = localStorage.getItem(key);
-      return raw === null ? fallback : JSON.parse(raw);
+      if (raw !== null) return JSON.parse(raw);
+      return overflowCache.has(key) ? JSON.parse(overflowCache.get(key)) : fallback;
     } catch {
       return fallback;
     }
@@ -250,15 +258,42 @@
 
   function writeJsonStorage(key, value) {
     if (value === undefined || value === null) {
-      localStorage.removeItem(key);
+      try { localStorage.removeItem(key); } catch {}
+      overflowSet(key, null);
       return;
     }
+    const json = JSON.stringify(value);
     try {
-      localStorage.setItem(key, JSON.stringify(value));
+      localStorage.setItem(key, json);
+      overflowSet(key, null);
     } catch (error) {
-      // Quota exceeded or storage blocked: autosave/recovery are best-effort and must never break editing flows.
-      console.warn(`Could not write ${key} to localStorage:`, error);
+      // Quota exceeded or storage blocked: keep the value in IndexedDB instead. Autosave and
+      // recovery are best-effort and must never break editing flows.
+      try { localStorage.removeItem(key); } catch {}
+      overflowSet(key, json);
     }
+  }
+
+  function overflowSet(key, json) {
+    if (json === null) {
+      if (!overflowCache.has(key)) return;
+      overflowCache.delete(key);
+    } else overflowCache.set(key, json);
+    if (!db) return;
+    const op = json === null
+      ? storeDelete(SAFETY_STORE, OVERFLOW_PREFIX + key)
+      : storePut(SAFETY_STORE, { id: OVERFLOW_PREFIX + key, json });
+    op.catch(error => console.warn(`Could not persist ${key} overflow:`, error));
+  }
+
+  async function loadStorageOverflow() {
+    try {
+      for (const record of await storeGetAll(SAFETY_STORE)) {
+        if (typeof record?.id === 'string' && record.id.startsWith(OVERFLOW_PREFIX) && typeof record.json === 'string') {
+          overflowCache.set(record.id.slice(OVERFLOW_PREFIX.length), record.json);
+        }
+      }
+    } catch (error) { console.warn('Could not load storage overflow:', error); }
   }
 
   let db = null;

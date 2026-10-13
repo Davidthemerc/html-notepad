@@ -275,26 +275,75 @@
     downloadBlob(safeDiskName(f.name,'.html'),doc,'text/html;charset=utf-8');
   }
 
+  // Names share one unique index across files and folders, so imports pick a free name.
+  function freeFilesystemName(base) {
+    let candidate = base, n = 2;
+    while (files.some(file => file.name.toLowerCase() === candidate.toLowerCase())) candidate = `${base} ${n++}`;
+    return candidate;
+  }
+
+  async function ensureImportFolder(pathParts, cache) {
+    let parentId = null, key = '';
+    for (const part of pathParts) {
+      key += '/' + part;
+      if (!cache.has(key)) {
+        const existing = files.find(f => f.type === 'folder' && f.parentId === parentId && f.name === part);
+        if (existing) cache.set(key, existing.id);
+        else {
+          const now = new Date().toISOString();
+          const folder = { id: uid(), type: 'folder', name: freeFilesystemName(normalizeName(part) || 'Imported'), content: '', parentId, createdAt: now, updatedAt: now, order: files.length };
+          await idbPut(folder);
+          files.push(folder);
+          cache.set(key, folder.id);
+        }
+      }
+      parentId = cache.get(key);
+    }
+    return parentId;
+  }
+
+  // Accepts TXT/HTML/Markdown files, whole folders (webkitRelativePath is used to rebuild the
+  // folder tree), Notepad Backup JSON (opens the restore inspector) and the "notes app" JSON
+  // export (an array of {title, value}), which becomes plain-text documents in one folder.
   async function importDocuments(fileList) {
-    const importedIds = [];
+    const importedIds = [], folderCache = new Map();
+    const addDocument = async (name, docType, content, parentId, createdAt) => {
+      const now = new Date().toISOString();
+      const imported = {
+        id: uid(), type: 'file', docType, parentId, name: freeFilesystemName(name), content,
+        createdAt: createdAt || now, updatedAt: now, order: files.length
+      };
+      await idbPut(imported);
+      files.push(imported);
+      importedIds.push(imported.id);
+    };
+
     for (const disk of [...fileList]) {
       try {
         const raw = await disk.text();
+        if (/\.json$/i.test(disk.name) || disk.type === 'application/json') {
+          const data = JSON.parse(raw);
+          if (data && !Array.isArray(data) && ['Notepad Backup', 'HTML Notepad Backup'].includes(data.format)) {
+            await openRestoreInspector(disk);
+            continue;
+          }
+          if (Array.isArray(data) && data.every(n => n && typeof n === 'object' && typeof n.value === 'string')) {
+            const parentId = await ensureImportFolder(['Imported Notes'], folderCache);
+            for (const note of data) {
+              await addDocument(normalizeName(String(note.title || '')) || 'Untitled note', 'plain', note.value, parentId);
+            }
+            continue;
+          }
+          toast(`${disk.name} is not a recognized notes or backup file.`);
+          continue;
+        }
         const isHtml = /\.html?$/i.test(disk.name) || disk.type === 'text/html';
         const isMarkdown = /\.(md|markdown)$/i.test(disk.name) || disk.type === 'text/markdown';
-        const content = isMarkdown ? raw : (isHtml ? sanitizeImportedHtml(raw) : escapePlainTextToHtml(raw));
-        let name = disk.name.replace(/\.(txt|html?|md|markdown)$/i, '') || 'Imported';
-        let candidate = name, n = 2;
-        while (files.some(file => file.name.toLowerCase() === candidate.toLowerCase())) candidate = `${name} ${n++}`;
-
-        const now = new Date().toISOString();
-        const imported = {
-          id:uid(), type:'file', docType:isMarkdown ? 'markdown' : (isHtml ? 'rich' : 'plain'),
-          parentId:null, name:candidate, content,
-          createdAt:now, updatedAt:now, order:files.length + importedIds.length
-        };
-        await idbPut(imported);
-        importedIds.push(imported.id);
+        const content = isMarkdown ? raw : (isHtml ? sanitizeImportedHtml(raw) : raw.replace(/\r\n?/g, '\n'));
+        const folders = (disk.webkitRelativePath || '').split('/').slice(0, -1).filter(Boolean);
+        const parentId = folders.length ? await ensureImportFolder(folders, folderCache) : null;
+        const name = disk.name.replace(/\.(txt|html?|md|markdown)$/i, '') || 'Imported';
+        await addDocument(name, isMarkdown ? 'markdown' : (isHtml ? 'rich' : 'plain'), content, parentId);
       } catch {
         toast(`Could not import ${disk.name}.`);
       }
@@ -302,12 +351,13 @@
 
     await refreshFiles();
 
-    // Import is also an open action: each successfully imported document gets a tab.
-    // Opening in selection order leaves the final imported document active.
-    for (const id of importedIds) await openFile(id);
+    // Import is also an open action: each successfully imported document gets a tab, but a
+    // large batch (folders, notes exports) only opens the first few to keep the tab bar usable.
+    const toOpen = importedIds.slice(-8);
+    for (const id of toOpen) await openFile(id);
 
     if (importedIds.length) {
-      status(`Imported and opened ${importedIds.length} file${importedIds.length === 1 ? '' : 's'}.`);
+      status(`Imported ${importedIds.length} file${importedIds.length === 1 ? '' : 's'}${toOpen.length < importedIds.length ? ` (opened the last ${toOpen.length})` : ' and opened them'}.`);
     }
   }
 

@@ -255,7 +255,7 @@
   async function restoreSession(){
     let session;try{session=JSON.parse(localStorage.getItem(LS_SESSION)||'null');}catch{return false;}
     if(!session||!Array.isArray(session.tabs))return false;
-    let drafts=[];try{drafts=JSON.parse(localStorage.getItem(LS_DRAFTS)||'[]');}catch{}
+    const drafts=readJsonStorage(LS_DRAFTS,[]);
     const draftMap=new Map((Array.isArray(drafts)?drafts:[]).map(d=>[d.draftId,d]));
     let protectedSkipped=0;
     // The recovery snapshot tracks unsaved edits to the active (already saved) document.
@@ -326,17 +326,12 @@
         docType:t.docType||'rich',
         markdownMode:t.markdownMode||'edit'
       }));
-    try {
-      if (drafts.length) localStorage.setItem(LS_DRAFTS, JSON.stringify(drafts));
-      else localStorage.removeItem(LS_DRAFTS);
-    } catch (error) {
-      console.warn('Could not persist unsaved drafts (storage full or blocked):', error);
-    }
+    writeJsonStorage(LS_DRAFTS, drafts.length ? drafts : null);
   }
 
   function restoreDrafts() {
     try {
-      const drafts = JSON.parse(localStorage.getItem(LS_DRAFTS) || '[]');
+      const drafts = readJsonStorage(LS_DRAFTS, []);
       if (!Array.isArray(drafts) || !drafts.length) return false;
       for (const d of drafts) {
         tabs.push({

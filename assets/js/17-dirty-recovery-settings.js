@@ -24,7 +24,7 @@
     captureEditorIntoActive();
     const tab = currentTab();
     if (!tab) {
-      localStorage.removeItem(LS_RECOVERY);
+      writeJsonStorage(LS_RECOVERY, null);
       return;
     }
 
@@ -46,7 +46,7 @@
       const session = protectedSessions.get(tab.fileId);
       const record = await idbGet(tab.fileId);
       if (!session || !isProtectedRecord(record)) {
-        localStorage.removeItem(LS_RECOVERY);
+        writeJsonStorage(LS_RECOVERY, null);
         return;
       }
       try {

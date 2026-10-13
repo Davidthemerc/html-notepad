@@ -188,6 +188,13 @@
     });
     $('expandAllFoldersBtn').addEventListener('click', expandAllFolders);
     $('collapseAllFoldersBtn').addEventListener('click', collapseAllFolders);
+    $('importFolderBtn').addEventListener('click', () => { closeFilesTreeMenu(); el.importFolderInput.click(); });
+    el.importFolderInput.addEventListener('change', async () => {
+      const selectedFiles = [...(el.importFolderInput.files || [])].filter(f => /\.(txt|html?|md|markdown)$/i.test(f.name));
+      if (selectedFiles.length) await importDocuments(selectedFiles);
+      else if (el.importFolderInput.files?.length) toast('No .txt, .html or .md files found in that folder.');
+      el.importFolderInput.value = '';
+    });
     el.fileSearch.addEventListener('input', renderFiles);
     el.fileList.addEventListener('keydown', event => {
       if (event.key === 'Delete' && selectedFileIds.size) {

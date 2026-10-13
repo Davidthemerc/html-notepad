@@ -125,6 +125,42 @@ async function suite(browser, label, url, { mobile = false } = {}) {
     eq(await page.evaluate(() => document.getElementById('markdownSource').value), '- [x] one\n- [x] two\n');
   });
 
+  await test('Markdown: footnotes and list-item continuation lines', async () => {
+    const html = await render('Hi[^a] there.\n\n[^a]: The note\n\n- one\n  more\n- two');
+    ok(html.includes('<sup class="fnref">1</sup>') && html.includes('<section class="footnotes">') && html.includes('The note'), 'footnote');
+    ok(html.includes('<li>one<br>more</li>'), 'continuation');
+  });
+  await test('import: .txt stays raw text, folders keep their structure, notes JSON becomes documents', async () => {
+    const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'notepad-imp-'));
+    fs.mkdirSync(path.join(dir, 'proj/sub'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'proj/a.txt'), 'x < y & z\nline2');
+    fs.writeFileSync(path.join(dir, 'proj/sub/b.md'), '# Hi');
+    fs.writeFileSync(path.join(dir, 'notes.json'), JSON.stringify([{ id: 1, title: 'N1', value: 'body & more' }]));
+    await page.setInputFiles('#importFolderInput', path.join(dir, 'proj')); await page.waitForTimeout(1000);
+    const info = await page.evaluate(() => ({
+      a: files.find(f => f.name === 'a')?.content,
+      parent: files.find(f => f.name === 'b') && files.find(x => x.id === files.find(f => f.name === 'b').parentId)?.name,
+      grand: files.find(f => f.name === 'sub') && files.find(x => x.id === files.find(f => f.name === 'sub').parentId)?.name
+    }));
+    eq(info.a, 'x < y & z\nline2'); eq(info.parent, 'sub'); eq(info.grand, 'proj');
+    await page.setInputFiles('#importDocInput', path.join(dir, 'notes.json')); await page.waitForTimeout(1000);
+    eq(await page.evaluate(() => files.find(f => f.name === 'N1')?.content), 'body & more');
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+  if (!mobile) {
+    await test('a 6 MB unsaved draft survives reload (IndexedDB overflow past localStorage)', async () => {
+      await newDoc('Plain');
+      await page.evaluate(() => {
+        const l = 'The quick brown fox jumps over the lazy dog. 0123456789\n';
+        const el = document.getElementById('markdownSource'); el.value = l.repeat(Math.floor(6e6 / l.length));
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      await page.waitForTimeout(1000);
+      await page.reload(); await page.waitForTimeout(2200);
+      ok((await page.evaluate(() => document.getElementById('markdownSource').value.length)) > 5.9e6, 'draft restored');
+    });
+  }
+
   if (mobile) {
     await test('second tap on a selected file opens it (touch only)', async () => {
       await newDoc('Plain'); await page.fill('#markdownSource', 'note body'); await page.dispatchEvent('#markdownSource', 'input');

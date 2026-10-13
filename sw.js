@@ -1,4 +1,4 @@
-const CACHE_NAME = 'html-notepad-v3.0.1';
+const CACHE_NAME = 'html-notepad-v3.1.0';
 const APP_SHELL = [
   "./",
   "./index.html",

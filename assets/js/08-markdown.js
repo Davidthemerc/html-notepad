@@ -21,13 +21,20 @@
     }[char]));
   }
 
-  function markdownInline(source) {
+  function markdownInline(source, footnotes = null) {
     let text = escapeHtmlText(source);
     // Stash code spans, images and link tags behind placeholders (no Markdown-significant
     // characters) so emphasis rules cannot alter them, e.g. underscores in URLs or target="_blank".
     const stash = [];
     const hold = html => `\uE000${stash.push(html) - 1}\uE001`;
     text = text.replace(/`([^`\n]+)`/g, (_, code) => hold(`<code>${code}</code>`));
+    if (footnotes) {
+      text = text.replace(/\[\^([^\]\s]+)\]/g, (match, id) => {
+        if (!footnotes.defs.has(id)) return match;
+        if (!footnotes.order.includes(id)) footnotes.order.push(id);
+        return hold(`<sup class="fnref">${footnotes.order.indexOf(id) + 1}</sup>`);
+      });
+    }
     text = text.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g, (_, alt, src) => hold(`<img alt="${alt}" src="${src}">`));
     text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+)\)/g,
       (_, label, href) => hold(`<a href="${href}" target="_blank" rel="noopener noreferrer">`) + label + hold('</a>'));
@@ -46,11 +53,22 @@
    */
   function renderMarkdown(source, { interactive = false } = {}) {
     const lines = String(source ?? '').replace(/\r\n?/g, '\n').split('\n');
+    // Footnote definitions ("[^id]: text") are collected up front and rendered at the end in
+    // order of first reference. Their lines are skipped in the main loop (line numbers stay stable).
+    const footnotes = { defs: new Map(), order: [] };
+    const footnoteLines = new Set();
+    let fenced = false;
+    lines.forEach((line, index) => {
+      if (/^```/.test(line)) fenced = !fenced;
+      const def = !fenced && line.match(/^\[\^([^\]\s]+)\]:\s+(.+)$/);
+      if (def) { footnotes.defs.set(def[1], def[2]); footnoteLines.add(index); }
+    });
+    const inline = text => markdownInline(text, footnotes);
     let html = '', paragraph = [], listStack = [], inCode = false, code = [], quote = [];
 
     const flushParagraph = () => {
       if (!paragraph.length) return;
-      html += `<p>${markdownInline(paragraph.join('\n')).replace(/\n/g, '<br>')}</p>`;
+      html += `<p>${inline(paragraph.join('\n')).replace(/\n/g, '<br>')}</p>`;
       paragraph = [];
     };
     // Nested lists: listStack holds one {type, indent} entry per open <ul>/<ol>; the
@@ -76,12 +94,13 @@
 
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const line = lines[lineIndex];
+      if (footnoteLines.has(lineIndex)) continue;
       if (!inCode && line.includes('|') && lineIndex + 1 < lines.length && isTableDivider(lines[lineIndex + 1])) {
         const header = splitRow(line), divider = splitRow(lines[lineIndex + 1]);
         if (header.length === divider.length) {
           flushParagraph(); closeList(); flushQuote();
           const align = divider.map(c => c.startsWith(':') && c.endsWith(':') ? 'center' : c.endsWith(':') ? 'right' : c.startsWith(':') ? 'left' : '');
-          const cell = (tag, text, i) => `<${tag}${align[i] ? ` style="text-align:${align[i]}"` : ''}>${markdownInline(text)}</${tag}>`;
+          const cell = (tag, text, i) => `<${tag}${align[i] ? ` style="text-align:${align[i]}"` : ''}>${inline(text)}</${tag}>`;
           html += `<table><thead><tr>${header.map((t, i) => cell('th', t, i)).join('')}</tr></thead><tbody>`;
           lineIndex += 2;
           while (lineIndex < lines.length && lines[lineIndex].trim() && lines[lineIndex].includes('|')) {
@@ -108,7 +127,7 @@
       if (heading) {
         flushParagraph(); closeList(); flushQuote();
         const level = heading[1].length;
-        html += `<h${level}>${markdownInline(heading[2])}</h${level}>`;
+        html += `<h${level}>${inline(heading[2])}</h${level}>`;
         continue;
       }
       if (/^\s*(---+|\*\*\*+|___+)\s*$/.test(line)) {
@@ -134,8 +153,13 @@
         }
         const task = ul && (ul[1].match(/^\[([ xX])\]\s+(.*)$/));
         html += task
-          ? `<li class="task-item"><input type="checkbox"${interactive ? ` data-task-line="${lineIndex}"` : ' disabled'}${task[1] === ' ' ? '' : ' checked'}> ${markdownInline(task[2])}`
-          : `<li>${markdownInline((ul || ol)[1])}`;
+          ? `<li class="task-item"><input type="checkbox"${interactive ? ` data-task-line="${lineIndex}"` : ' disabled'}${task[1] === ' ' ? '' : ' checked'}> ${inline(task[2])}`
+          : `<li>${inline((ul || ol)[1])}`;
+        continue;
+      }
+      // Indented text right under a list item continues that item.
+      if (listStack.length && line.trim() && indentOf(line) > 0 && !ul && !ol) {
+        html += `<br>${inline(line.trim())}`;
         continue;
       }
       if (!line.trim()) {
@@ -150,6 +174,9 @@
     }
     if (inCode) html += `<pre><code>${escapeHtmlText(code.join('\n'))}</code></pre>`;
     flushParagraph(); closeList(); flushQuote();
+    if (footnotes.order.length) {
+      html += `<section class="footnotes"><hr><ol>${footnotes.order.map(id => `<li>${markdownInline(footnotes.defs.get(id))}</li>`).join('')}</ol></section>`;
+    }
     return html || '<p></p>';
   }
 
@@ -853,7 +880,7 @@
   }
   async function reopenClosedTab(){
     const c=closedTabs.shift();if(!c)return toast('No recently closed tab.');
-    localStorage.setItem(LS_CLOSED_TABS,JSON.stringify(closedTabs));
+    writeJsonStorage(LS_CLOSED_TABS,closedTabs);
     if(c.fileId){
       const f=await idbGet(c.fileId);
       if(f && isProtectedRecord(f)){
