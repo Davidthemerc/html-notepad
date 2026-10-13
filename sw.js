@@ -1,4 +1,4 @@
-const CACHE_NAME = 'html-notepad-v3.1.0';
+const CACHE_NAME = 'html-notepad-v3.1.1';
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -33,7 +33,12 @@ const APP_SHELL = [
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
+  // cache: 'reload' bypasses the browser HTTP cache. Without it, a host that sends
+  // Cache-Control: max-age (GitHub Pages: 10 minutes) lets a new worker pre-cache the OLD
+  // files under the new cache name, so the update installs but the app does not change.
+  event.waitUntil(caches.open(CACHE_NAME).then(cache =>
+    Promise.all(APP_SHELL.map(url => cache.add(new Request(url, { cache: 'reload' })))))
+  );
   // Deliberately do not call skipWaiting() here. An installed update waits
   // until the user chooses Restart Now or all old-version clients close.
 });

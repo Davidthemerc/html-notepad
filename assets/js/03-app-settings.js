@@ -88,8 +88,14 @@
         });
       });
 
-      // Ask the browser to check promptly when Notepad opens.
-      registration.update().catch(() => {});
+      // Ask the browser to check when Notepad opens, whenever the installed app returns to the
+      // foreground (a PWA can stay alive in the background for days without reloading), and hourly.
+      const checkForUpdate = () => { registration.update().catch(() => {}); };
+      checkForUpdate();
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') checkForUpdate();
+      });
+      setInterval(checkForUpdate, 60 * 60 * 1000);
     }).catch(error => {
       console.warn('Notepad service worker registration failed.', error);
     });

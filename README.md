@@ -1,6 +1,6 @@
-# HTML Notepad v3.1.0
+# HTML Notepad v3.1.1
 
-HTML Notepad is an offline-first browser notepad with an IndexedDB-backed virtual filesystem. Version 3.1.0 provides both a modular hosted/PWA build and the traditional single-file standalone build.
+HTML Notepad is an offline-first browser notepad with an IndexedDB-backed virtual filesystem. Version 3.1.1 provides both a modular hosted/PWA build and the traditional single-file standalone build.
 
 ## Repository layout
 
