@@ -14,10 +14,13 @@ jobs:
         with:
           node-version: 22
       - run: npm install --no-audit --no-fund
+        working-directory: tests
       - run: npx playwright install --with-deps chromium
+        working-directory: tests
       - name: Syntax check
         run: for f in assets/js/*.js sw.js tests/smoke.js; do node --check "$f"; done
       - name: Standalone build is current
         run: python3 tools/build_standalone.py --check
       - name: Smoke tests
         run: npm test
+        working-directory: tests

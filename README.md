@@ -11,7 +11,7 @@ HTML Notepad is an offline-first browser notepad with an IndexedDB-backed virtua
 - `sw.js` — offline application-shell cache
 - `icons/` — PWA icons
 - `tools/build_standalone.py` — regenerates the standalone file from the modular source
-- `tests/smoke.js` — headless Chromium smoke tests (`npm test`)
+- `tests/smoke.js` — headless Chromium smoke tests (`cd tests && npm test`)
 - `HTML%20Notepad v<version>.html` — generated single-file standalone edition (the file name contains a literal `%20`)
 
 ## GitHub Pages
@@ -35,7 +35,7 @@ A local standalone file and a hosted PWA use different browser storage origins, 
 ```bash
 python3 tools/build_standalone.py          # regenerate the standalone edition (version from assets/js/00-core.js)
 python3 tools/build_standalone.py --check  # fail if the committed standalone is stale
-npm install && npm test                    # smoke tests (set CHROMIUM_PATH to reuse an installed Chromium)
+(cd tests && npm install && npm test)     # smoke tests (set CHROMIUM_PATH to reuse an installed Chromium)
 ```
 
 Edit the modular source, bump `APP_VERSION` and the `sw.js` cache name together, then rebuild the standalone.
@@ -43,3 +43,9 @@ Edit the modular source, bump `APP_VERSION` and the `sw.js` cache name together,
 ## Offline behavior
 
 The standalone edition has no hosting requirement and remains a single self-contained HTML file. The modular edition needs HTTPS for PWA installation/service-worker registration, but once its application shell is cached it can launch offline. User-created hyperlinks can still open websites when deliberately activated.
+
+## Cloudflare Pages / Workers deployment
+
+Keep `package.json` out of the repository root: Cloudflare then runs `bun install` and `wrangler deploy` uploads
+`node_modules` (Workers assets are limited to 25 MiB per file). Test dependencies live in `tests/`, and
+`.assetsignore` keeps tooling files out of the deployed site. `wrangler.jsonc` serves the repository root as static assets.

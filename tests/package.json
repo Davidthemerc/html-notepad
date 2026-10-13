@@ -2,8 +2,8 @@
   "name": "html-notepad",
   "private": true,
   "scripts": {
-    "build": "python3 tools/build_standalone.py",
-    "test": "node tests/smoke.js"
+    "build": "python3 ../tools/build_standalone.py",
+    "test": "node smoke.js"
   },
   "devDependencies": {
     "playwright": "^1.56.1"
