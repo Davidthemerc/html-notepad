@@ -276,7 +276,13 @@
 
     const restoredSplit=session.split;
     const splitRequested=!!restoredSplit?.enabled;
-    if(!tabs.length && !splitRequested) return false;
+    if(!tabs.length && !splitRequested){
+      // Every remembered tab was a locked protected document: open a blank tab but keep the explanation.
+      if(!protectedSkipped) return false;
+      newTab('',{name:uniqueUntitledName(),dirty:false});
+      status(`${protectedSkipped} protected document${protectedSkipped===1?' remains':'s remain'} locked. Open ${protectedSkipped===1?'it':'them'} from Files to unlock.`);
+      return true;
+    }
 
     activeTabId=tabs.some(t=>t.tabId===session.activeTabId)?session.activeTabId:(tabs[0]?.tabId||null);
 

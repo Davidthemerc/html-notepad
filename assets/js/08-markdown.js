@@ -46,18 +46,20 @@
    */
   function renderMarkdown(source, { interactive = false } = {}) {
     const lines = String(source ?? '').replace(/\r\n?/g, '\n').split('\n');
-    let html = '', paragraph = [], listType = null, inCode = false, code = [], quote = [];
+    let html = '', paragraph = [], listStack = [], inCode = false, code = [], quote = [];
 
     const flushParagraph = () => {
       if (!paragraph.length) return;
       html += `<p>${markdownInline(paragraph.join('\n')).replace(/\n/g, '<br>')}</p>`;
       paragraph = [];
     };
-    const closeList = () => {
-      if (!listType) return;
-      html += `</${listType}>`;
-      listType = null;
+    // Nested lists: listStack holds one {type, indent} entry per open <ul>/<ol>; the
+    // current <li> stays open so a deeper list can nest inside it.
+    const closeList = (downTo = 0) => {
+      while (listStack.length > downTo) html += `</li></${listStack.pop().type}>`;
     };
+    const listItemRe = /^\s*(?:[-+*]|\d+[.)])\s+\S/;
+    const indentOf = text => text.match(/^[ \t]*/)[0].replace(/\t/g, '    ').length;
     const flushQuote = () => {
       if (!quote.length) return;
       html += `<blockquote>${quote.map(markdownInline).join('<br>')}</blockquote>`;
@@ -120,17 +122,30 @@
       const ul = line.match(/^\s*[-+*]\s+(.+)$/), ol = line.match(/^\s*\d+[.)]\s+(.+)$/);
       if (ul || ol) {
         flushParagraph();
-        const wanted = ul ? 'ul' : 'ol';
-        if (listType !== wanted) { closeList(); listType = wanted; html += `<${wanted}>`; }
+        const wanted = ul ? 'ul' : 'ol', indent = indentOf(line);
+        while (listStack.length && indent < listStack[listStack.length - 1].indent) closeList(listStack.length - 1);
+        const top = listStack[listStack.length - 1];
+        if (top && indent === top.indent && top.type === wanted) html += '</li>';
+        else {
+          if (top && indent === top.indent) closeList(listStack.length - 1);
+          const startNum = ol ? Number(line.match(/^\s*(\d+)/)[1]) : 1;
+          html += `<${wanted}${wanted === 'ol' && startNum !== 1 ? ` start="${startNum}"` : ''}>`;
+          listStack.push({ type: wanted, indent });
+        }
         const task = ul && (ul[1].match(/^\[([ xX])\]\s+(.*)$/));
         html += task
-          ? `<li class="task-item"><input type="checkbox"${interactive ? ` data-task-line="${lineIndex}"` : ' disabled'}${task[1] === ' ' ? '' : ' checked'}> ${markdownInline(task[2])}</li>`
-          : `<li>${markdownInline((ul || ol)[1])}</li>`;
+          ? `<li class="task-item"><input type="checkbox"${interactive ? ` data-task-line="${lineIndex}"` : ' disabled'}${task[1] === ' ' ? '' : ' checked'}> ${markdownInline(task[2])}`
+          : `<li>${markdownInline((ul || ol)[1])}`;
+        continue;
+      }
+      if (!line.trim()) {
+        flushParagraph();
+        // A blank line between items keeps the same list going; anything else ends it.
+        const next = lines.slice(lineIndex + 1).find(l => l.trim());
+        if (!(listStack.length && next && listItemRe.test(next))) closeList();
         continue;
       }
       closeList();
-
-      if (!line.trim()) { flushParagraph(); continue; }
       paragraph.push(line);
     }
     if (inCode) html += `<pre><code>${escapeHtmlText(code.join('\n'))}</code></pre>`;

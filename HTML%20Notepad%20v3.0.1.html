@@ -1760,7 +1760,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
     <span id="charCount">0 chars</span>
     <span id="cursorPosition">Ln 1, Col 1</span>
     <span class="zoom-control"><button id="zoomOutBtn" title="Zoom out">−</button><span id="zoomLabel">100%</span><button id="zoomInBtn" title="Zoom in">+</button></span>
-    <span>v3.0.0</span>
+    <span>v3.0.1</span>
   </div>
 </div>
 
@@ -2076,7 +2076,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
   <div class="manual-head">
     <div>
       <div id="manualDialogTitle" class="manual-title">HTML Notepad User Manual</div>
-      <div class="manual-version">Integrated Help · v3.0.0</div>
+      <div class="manual-version">Integrated Help · v3.0.1</div>
     </div>
     <button id="manualCloseTopBtn" type="button" class="manual-close" title="Close Manual (Esc)" aria-label="Close Manual">×</button>
   </div>
@@ -2098,7 +2098,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
 </dialog>
 
 <div id="manualSectionStore" hidden>
-<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.0.0</h2>
+<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.0.1</h2>
 <p>HTML Notepad is a self-contained, offline notepad that runs in a web
 browser. It provides tabs, rich-text formatting, folders, embedded
 images, search tools, printing, backups, and session recovery without
@@ -2111,7 +2111,7 @@ operating system unless you explicitly export a document or create a
 JSON backup.</p>
 <hr /></section>
 <section data-manual-id="starting-html-notepad" data-manual-title="1. Starting HTML Notepad"><h2>1. Starting HTML Notepad</h2>
-<p>For the standalone edition, open <code>HTML Notepad v3.0.0.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
+<p>For the standalone edition, open <code>HTML Notepad v3.0.1.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
 <p>A new, empty <strong>Untitled</strong> document is available when
 there is no previous workspace to restore. HTML Notepad also remembers
 the prior session, including open tabs, the active tab, tab order,
@@ -3083,12 +3083,12 @@ Press <strong>/</strong> or <strong>Ctrl+F</strong> to focus manual
 search, <strong>Alt+Up</strong> or <strong>Alt+Down</strong> to move
 between sections, and <strong>Escape</strong> to close the popup.</p>
 <hr />
-<p><em>HTML Notepad User Manual — v3.0.0</em></p></section>
+<p><em>HTML Notepad User Manual — v3.0.1</em></p></section>
 
 <section data-manual-id="pwa-and-standalone-builds" data-manual-title="28. PWA and Standalone Builds"><h2>28. PWA and Standalone Builds</h2>
-<p>Version 3.0.0 is published in two forms that share the same application code and features.</p>
+<p>Version 3.0.1 is published in two forms that share the same application code and features.</p>
 <ul>
-<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.0.0.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
+<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.0.1.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
 <li><strong>Modular/PWA:</strong> the GitHub build uses <code>index.html</code>, <code>assets/styles.css</code>, separate responsibility-based JavaScript files under <code>assets/js/</code>, <code>manifest.webmanifest</code>, icons, and <code>sw.js</code>. The hosted PWA runs those separate JavaScript files directly; it does not use a monolithic <code>app.js</code>. Shared runtime state is initialized during startup after all ordered scripts have loaded, so cross-file dependencies do not rely on single-file function hoisting. The service worker only intercepts same-origin HTTP/HTTPS requests; browser-extension and other non-web schemes are ignored. The Find/Replace bar reserves its own height above the ruler on desktop. Host the built folder over HTTPS (for example with GitHub Pages or Cloudflare Pages) to make it installable and to allow the service worker to cache the application shell for offline launches.</li>
 </ul>
 <p>The hosted PWA does not upload Notepad documents. Saved documents, folders, images, settings, and drafts continue to use browser-local IndexedDB and localStorage. The hosting server supplies the application files themselves.</p>
@@ -3097,6 +3097,7 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
 <div class="manual-callout"><strong>PWA updates:</strong> when a newer hosted version finishes downloading, Notepad shows <strong>Notepad update ready</strong>. It does not interrupt the current editing session. Choose <strong>Restart Now</strong> to capture the active editor state, persist drafts/session recovery, activate the waiting version, and reload. Choose <strong>Later</strong> to keep working; the waiting version can take over after the current app closes.</div>
 <hr /></section>
 </div>
+
 
 <dialog id="appConfirmDialog" class="app-confirm-dialog">
   <div id="appConfirmTitle" class="dialog-head">Confirm</div>
@@ -3128,7 +3129,7 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
 </dialog>
 
 <script>
-  const APP_VERSION = '3.0.0';
+  const APP_VERSION = '3.0.1';
   const DB_NAME = 'HTMLNotepadDB';
   const DB_VERSION = 3;
   const FILE_STORE = 'files';
@@ -3450,7 +3451,6 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
     customDictionary: []
   };
   let settings = null; // Initialized by startup after all runtime scripts have loaded.
-
 
   /*
    * BUILT-IN U.S. ENGLISH SPELLCHECK DICTIONARY
@@ -170252,7 +170252,6 @@ $tec
 )'s
 "zz`;
 
-
   const SPELL_HIGHLIGHT_NAME = 'notepad-spelling-errors';
   const SPELL_WORD_RE = /[\p{L}]+(?:['’][\p{L}]+)*/gu;
   const SPELL_APP_WORDS = [
@@ -170511,7 +170510,6 @@ $tec
     toast(`Added “${word}” to dictionary.`);
   }
 
-
   // ===========================================================================
   // APP METADATA & SETTINGS
   // ===========================================================================
@@ -170660,7 +170658,6 @@ $tec
     el.statusMessage.textContent = message;
   }
 
-
   // ===========================================================================
   // INDEXEDDB STORAGE
   // ===========================================================================
@@ -170733,7 +170730,6 @@ $tec
   function storePut(storeName,value){return new Promise((resolve,reject)=>{const r=db.transaction(storeName,'readwrite').objectStore(storeName).put(value);r.onsuccess=()=>resolve(value);r.onerror=()=>reject(r.error);});}
   function storeClear(storeName){return new Promise((resolve,reject)=>{const r=db.transaction(storeName,'readwrite').objectStore(storeName).clear();r.onsuccess=()=>resolve();r.onerror=()=>reject(r.error);});}
   function storeDelete(storeName,id){return new Promise((resolve,reject)=>{const r=db.transaction(storeName,'readwrite').objectStore(storeName).delete(id);r.onsuccess=()=>resolve();r.onerror=()=>reject(r.error);});}
-
 
   // ===========================================================================
   // LAYOUT, FILE DRAWER & RULERS
@@ -170819,7 +170815,6 @@ $tec
     cancelAnimationFrame(rulerResizeFrame);
     rulerResizeFrame = requestAnimationFrame(buildRulers);
   }
-
 
   // ===========================================================================
   // VIRTUAL FILESYSTEM
@@ -171426,7 +171421,6 @@ $tec
   function formatDate(iso) {
     try { return new Date(iso).toLocaleString(); } catch { return iso; }
   }
-
 
   // ===========================================================================
   // TABS & SESSION STATE
@@ -172052,7 +172046,6 @@ $tec
     }
   }
 
-
   // ===========================================================================
   // MARKDOWN DOCUMENTS
   // ===========================================================================
@@ -172101,18 +172094,20 @@ $tec
    */
   function renderMarkdown(source, { interactive = false } = {}) {
     const lines = String(source ?? '').replace(/\r\n?/g, '\n').split('\n');
-    let html = '', paragraph = [], listType = null, inCode = false, code = [], quote = [];
+    let html = '', paragraph = [], listStack = [], inCode = false, code = [], quote = [];
 
     const flushParagraph = () => {
       if (!paragraph.length) return;
       html += `<p>${markdownInline(paragraph.join('\n')).replace(/\n/g, '<br>')}</p>`;
       paragraph = [];
     };
-    const closeList = () => {
-      if (!listType) return;
-      html += `</${listType}>`;
-      listType = null;
+    // Nested lists: listStack holds one {type, indent} entry per open <ul>/<ol>; the
+    // current <li> stays open so a deeper list can nest inside it.
+    const closeList = (downTo = 0) => {
+      while (listStack.length > downTo) html += `</li></${listStack.pop().type}>`;
     };
+    const listItemRe = /^\s*(?:[-+*]|\d+[.)])\s+\S/;
+    const indentOf = text => text.match(/^[ \t]*/)[0].replace(/\t/g, '    ').length;
     const flushQuote = () => {
       if (!quote.length) return;
       html += `<blockquote>${quote.map(markdownInline).join('<br>')}</blockquote>`;
@@ -172175,17 +172170,30 @@ $tec
       const ul = line.match(/^\s*[-+*]\s+(.+)$/), ol = line.match(/^\s*\d+[.)]\s+(.+)$/);
       if (ul || ol) {
         flushParagraph();
-        const wanted = ul ? 'ul' : 'ol';
-        if (listType !== wanted) { closeList(); listType = wanted; html += `<${wanted}>`; }
+        const wanted = ul ? 'ul' : 'ol', indent = indentOf(line);
+        while (listStack.length && indent < listStack[listStack.length - 1].indent) closeList(listStack.length - 1);
+        const top = listStack[listStack.length - 1];
+        if (top && indent === top.indent && top.type === wanted) html += '</li>';
+        else {
+          if (top && indent === top.indent) closeList(listStack.length - 1);
+          const startNum = ol ? Number(line.match(/^\s*(\d+)/)[1]) : 1;
+          html += `<${wanted}${wanted === 'ol' && startNum !== 1 ? ` start="${startNum}"` : ''}>`;
+          listStack.push({ type: wanted, indent });
+        }
         const task = ul && (ul[1].match(/^\[([ xX])\]\s+(.*)$/));
         html += task
-          ? `<li class="task-item"><input type="checkbox"${interactive ? ` data-task-line="${lineIndex}"` : ' disabled'}${task[1] === ' ' ? '' : ' checked'}> ${markdownInline(task[2])}</li>`
-          : `<li>${markdownInline((ul || ol)[1])}</li>`;
+          ? `<li class="task-item"><input type="checkbox"${interactive ? ` data-task-line="${lineIndex}"` : ' disabled'}${task[1] === ' ' ? '' : ' checked'}> ${markdownInline(task[2])}`
+          : `<li>${markdownInline((ul || ol)[1])}`;
+        continue;
+      }
+      if (!line.trim()) {
+        flushParagraph();
+        // A blank line between items keeps the same list going; anything else ends it.
+        const next = lines.slice(lineIndex + 1).find(l => l.trim());
+        if (!(listStack.length && next && listItemRe.test(next))) closeList();
         continue;
       }
       closeList();
-
-      if (!line.trim()) { flushParagraph(); continue; }
       paragraph.push(line);
     }
     if (inCode) html += `<pre><code>${escapeHtmlText(code.join('\n'))}</code></pre>`;
@@ -173081,7 +173089,6 @@ $tec
     if (window.matchMedia?.('(max-width: 760px)').matches) setFilesDrawer(false);
   }
 
-
   // ===========================================================================
   // IMPORT / EXPORT & FILE OPERATIONS
   // ===========================================================================
@@ -173577,7 +173584,6 @@ $tec
     if (previousFocus?.isConnected) setTimeout(() => previousFocus.focus(), 0);
     resolve(side === 'left' || side === 'right' ? side : null);
   }
-
 
   // ===========================================================================
   // PASSWORD-PROTECTED DOCUMENTS (AES-256-GCM)
@@ -174682,7 +174688,6 @@ $tec
     await moveSelectionToTrash();
   }
 
-
   // ===========================================================================
   // TRASH
   // ===========================================================================
@@ -174961,7 +174966,13 @@ $tec
 
     const restoredSplit=session.split;
     const splitRequested=!!restoredSplit?.enabled;
-    if(!tabs.length && !splitRequested) return false;
+    if(!tabs.length && !splitRequested){
+      // Every remembered tab was a locked protected document: open a blank tab but keep the explanation.
+      if(!protectedSkipped) return false;
+      newTab('',{name:uniqueUntitledName(),dirty:false});
+      status(`${protectedSkipped} protected document${protectedSkipped===1?' remains':'s remain'} locked. Open ${protectedSkipped===1?'it':'them'} from Files to unlock.`);
+      return true;
+    }
 
     activeTabId=tabs.some(t=>t.tabId===session.activeTabId)?session.activeTabId:(tabs[0]?.tabId||null);
 
@@ -175042,7 +175053,6 @@ $tec
   }
 
   function escapeHtml(v){const d=document.createElement('div');d.textContent=String(v??'');return d.innerHTML;}
-
 
   // ===========================================================================
   // BACKUP, RESTORE & SAFETY SNAPSHOTS
@@ -175410,7 +175420,6 @@ $tec
     toast('Returned to the pre-restore snapshot.');
   }
 
-
   // ===========================================================================
   // EDITOR SELECTION & AUTO-LINKING
   // ===========================================================================
@@ -175561,7 +175570,6 @@ $tec
     button.title = expanded ? 'Show fewer controls' : 'Show more controls';
     scheduleRulerBuild();
   }
-
 
   // ===========================================================================
   // FONT COLOR TOOLS
@@ -175913,7 +175921,6 @@ $tec
   function insertHorizontalRule(){if(!requireActiveDocument())return;restoreEditorSelection();el.editor.focus();document.execCommand('insertHorizontalRule',false,null);markDirtyFromEditor();}
   function propRow(label,value){return `<div class="prop-label">${escapeHtml(label)}</div><div>${escapeHtml(value)}</div>`;}
 
-
   // ===========================================================================
   // DOCUMENT TOOLS & STATISTICS
   // ===========================================================================
@@ -176023,9 +176030,22 @@ $tec
     el.documentStatsBody.innerHTML = html;
     el.documentStatsDialog.showModal();
   }
- function updateCounts() {
+ // Counting words/characters walks the whole document, so on very large documents the
+  // status-bar update is coalesced instead of running on every keystroke.
+  let countsTimer = null, lastCountChars = 0;
+  function updateCounts() {
+    if (lastCountChars > 150000) {
+      if (countsTimer) return;
+      countsTimer = setTimeout(() => { countsTimer = null; updateCountsNow(); }, 250);
+      return;
+    }
+    updateCountsNow();
+  }
+
+  function updateCountsNow() {
     const text = (isSourceTab() ? el.markdownSource.value : el.editor.innerText).replace(/\u00a0/g, ' ');
-    const chars = text.length, words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const chars = text.length; lastCountChars = chars;
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
     let selectedWords=0,selectedChars=0,selectedLines=0;
     if (isSourceTab()) {
       const raw = el.markdownSource.value.slice(el.markdownSource.selectionStart, el.markdownSource.selectionEnd);
@@ -176083,7 +176103,6 @@ $tec
     const nearest=sizes.reduce((a,b)=>Math.abs(b-size)<Math.abs(a-size)?b:a,16);
     el.fontSizeSelect.value=String(nearest);
   }
-
 
   // ===========================================================================
   // EDITOR CONTEXT MENU, CLIPBOARD & PRINTING
@@ -176279,7 +176298,6 @@ $tec
     }
     updateTypographyControls();
   }
-
 
   // ===========================================================================
   // DIRTY STATE, RECOVERY & SETTINGS
@@ -176521,7 +176539,6 @@ $tec
   }
   function changeZoom(delta){ settings.zoom=Math.max(50,Math.min(200,(Number(settings.zoom)||100)+delta)); saveSettings(); applyZoom(); }
 
-
   // ===========================================================================
   // FIND / REPLACE
   // ===========================================================================
@@ -176748,7 +176765,6 @@ $tec
     range.deleteContents();range.insertNode(span);range.setStartAfter(span);range.collapse(true);sel.removeAllRanges();sel.addRange(range);markDirtyFromEditor();
   }
 
-
   // ===========================================================================
   // TAB KEY BEHAVIOR
   // ===========================================================================
@@ -176767,7 +176783,6 @@ $tec
     }
     insertTabAtSelection();
   }
-
 
   // ===========================================================================
   // EVENT HANDLERS
@@ -176983,7 +176998,6 @@ $tec
     }, 0);
   }
 
-
   // ===========================================================================
   // INTEGRATED HELP / USER MANUAL
   // ===========================================================================
@@ -177152,7 +177166,6 @@ $tec
     else if (key === '8' && event.shiftKey && !isMarkdownTab()) { event.preventDefault(); exec('insertUnorderedList', true); }
     // Ctrl/Cmd+B and Ctrl/Cmd+I remain native contenteditable shortcuts for Rich Text.
   }
-
 
   // ===========================================================================
   // EVENT BINDING
@@ -177850,7 +177863,6 @@ $tec
     }
   }
 
-
   // ===========================================================================
   // STARTUP
   // ===========================================================================
@@ -177872,8 +177884,8 @@ $tec
       await purgeExpiredTrash();
       await refreshRestoreSafetyUi();
       await refreshFiles();
-      if (!(await restoreSession())) { if (!restoreDrafts()) newTab('', { name: uniqueUntitledName(), dirty: false }); }
-      status('');
+      const restored = await restoreSession() || restoreDrafts();
+      if (!restored) { newTab('', { name: uniqueUntitledName(), dirty: false }); status(''); }
     } catch (err) {
       console.error(err);
       status('IndexedDB could not be opened. Your browser may be blocking local storage for this file.');
@@ -177886,5 +177898,6 @@ $tec
   init();
 
 </script>
+
 </body>
 </html>

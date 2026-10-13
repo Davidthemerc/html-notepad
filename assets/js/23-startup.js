@@ -19,8 +19,8 @@
       await purgeExpiredTrash();
       await refreshRestoreSafetyUi();
       await refreshFiles();
-      if (!(await restoreSession())) { if (!restoreDrafts()) newTab('', { name: uniqueUntitledName(), dirty: false }); }
-      status('');
+      const restored = await restoreSession() || restoreDrafts();
+      if (!restored) { newTab('', { name: uniqueUntitledName(), dirty: false }); status(''); }
     } catch (err) {
       console.error(err);
       status('IndexedDB could not be opened. Your browser may be blocking local storage for this file.');

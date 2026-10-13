@@ -107,9 +107,22 @@
     el.documentStatsBody.innerHTML = html;
     el.documentStatsDialog.showModal();
   }
- function updateCounts() {
+ // Counting words/characters walks the whole document, so on very large documents the
+  // status-bar update is coalesced instead of running on every keystroke.
+  let countsTimer = null, lastCountChars = 0;
+  function updateCounts() {
+    if (lastCountChars > 150000) {
+      if (countsTimer) return;
+      countsTimer = setTimeout(() => { countsTimer = null; updateCountsNow(); }, 250);
+      return;
+    }
+    updateCountsNow();
+  }
+
+  function updateCountsNow() {
     const text = (isSourceTab() ? el.markdownSource.value : el.editor.innerText).replace(/\u00a0/g, ' ');
-    const chars = text.length, words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const chars = text.length; lastCountChars = chars;
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
     let selectedWords=0,selectedChars=0,selectedLines=0;
     if (isSourceTab()) {
       const raw = el.markdownSource.value.slice(el.markdownSource.selectionStart, el.markdownSource.selectionEnd);

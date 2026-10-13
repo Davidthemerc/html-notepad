@@ -1,6 +1,6 @@
-# HTML Notepad v3.0.0
+# HTML Notepad v3.0.1
 
-HTML Notepad is an offline-first browser notepad with an IndexedDB-backed virtual filesystem. Version 3.0.0 provides both a modular hosted/PWA build and the traditional single-file standalone build.
+HTML Notepad is an offline-first browser notepad with an IndexedDB-backed virtual filesystem. Version 3.0.1 provides both a modular hosted/PWA build and the traditional single-file standalone build.
 
 ## Repository layout
 
@@ -10,7 +10,9 @@ HTML Notepad is an offline-first browser notepad with an IndexedDB-backed virtua
 - `manifest.webmanifest` — install metadata
 - `sw.js` — offline application-shell cache
 - `icons/` — PWA icons
-- `HTML Notepad v2.9.x.html` — single-file standalone editions (files are stored with a literal `%20` in their names)
+- `tools/build_standalone.py` — regenerates the standalone file from the modular source
+- `tests/smoke.js` — headless Chromium smoke tests (`npm test`)
+- `HTML%20Notepad v<version>.html` — generated single-file standalone edition (the file name contains a literal `%20`)
 
 ## GitHub Pages
 
@@ -27,6 +29,16 @@ The service worker caches the application shell so the installed app can launch 
 Documents are not uploaded to the host by HTML Notepad. Saved documents, folders, images, drafts, settings, and session data remain in the browser's IndexedDB/localStorage for that origin. The server only hosts the application files.
 
 A local standalone file and a hosted PWA use different browser storage origins, so their Notepad libraries do **not** automatically share data. Use **Backup & Restore** to transfer a library between them.
+
+## Build and test
+
+```bash
+python3 tools/build_standalone.py          # regenerate the standalone edition (version from assets/js/00-core.js)
+python3 tools/build_standalone.py --check  # fail if the committed standalone is stale
+npm install && npm test                    # smoke tests (set CHROMIUM_PATH to reuse an installed Chromium)
+```
+
+Edit the modular source, bump `APP_VERSION` and the `sw.js` cache name together, then rebuild the standalone.
 
 ## Offline behavior
 
