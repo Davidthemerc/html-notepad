@@ -1548,3 +1548,6 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
   .tab { min-height: 38px; }
   .tab-close { min-width: 32px; min-height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; margin-right: -6px; }
 }
+
+::highlight(notepad-find-match){background-color:#ffd54a;color:#000}
+.find-hit{position:fixed;z-index:5;pointer-events:none;background:rgba(255,213,74,.55);border-radius:2px}

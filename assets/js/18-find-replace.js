@@ -2,12 +2,30 @@
   // FIND / REPLACE
   // ===========================================================================
 
+  // Logical text offset of the caret/selection start, so a new search begins at the cursor
+  // instead of always jumping back to the top of the document.
+  let findAnchor=0;
+  function currentLogicalOffset(){
+    if(isSourceTab())return el.markdownSource.selectionStart||0;
+    const sel=getSelection();
+    if(!sel||!sel.rangeCount||!el.editor.contains(sel.anchorNode))return 0;
+    const range=sel.getRangeAt(0),map=richSearchMap();
+    const index=map.points.findIndex(point=>point&&point.node===range.startContainer&&point.offset>=range.startOffset);
+    return index<0?0:index;
+  }
   function openFindBar(replace=false){
     if (!requireActiveDocument()) return;
+    if(el.findBar.hidden)findAnchor=currentLogicalOffset();
     el.findBar.hidden=false; el.replaceInput.style.display=replace?'':'none'; el.replaceOneBtn.style.display=replace?'':'none'; el.replaceAllBtn.style.display=replace?'':'none';
     setTimeout(()=>{el.findInput.focus();el.findInput.select();},0); refreshFindMatches();
   }
-  function closeFindBar(){el.findBar.hidden=true;findMatches=[];findIndex=-1;el.editor.focus();}
+  function closeFindBar(){
+    // Leave the current match selected in the document so editing can continue from it.
+    const match=findIndex>=0?findMatches[findIndex]:null;
+    el.findBar.hidden=true;clearFindHighlight();findMatches=[];findIndex=-1;
+    if(match&&selectFindMatch(...match))return;
+    if(isSourceTab())el.markdownSource.focus();else el.editor.focus();
+  }
     function richSearchMap(root=el.editor){
     const blockTags=new Set([
       'ADDRESS','ARTICLE','ASIDE','BLOCKQUOTE','DIV','DL','DT','DD','FIGCAPTION',
@@ -59,21 +77,92 @@
     return range;
   }
 
-  function selectFindMatch(start,end){
+  // Pixel offset of a character position inside the textarea (accounts for wrapping), measured
+  // with a hidden mirror element that copies the textarea's text metrics.
+  function buildTextareaMirror(area,position,end=null){
+    const style=getComputedStyle(area),mirror=document.createElement('div');
+    ['fontFamily','fontSize','fontWeight','fontStyle','letterSpacing','lineHeight','tabSize','textTransform','whiteSpace','wordBreak','overflowWrap','paddingTop','paddingRight','paddingBottom','paddingLeft','borderLeftWidth','borderRightWidth','boxSizing']
+      .forEach(prop=>{mirror.style[prop]=style[prop];});
+    mirror.style.position='absolute';mirror.style.visibility='hidden';mirror.style.top='0';mirror.style.left='-9999px';
+    mirror.style.width=area.clientWidth+parseFloat(style.borderLeftWidth)+parseFloat(style.borderRightWidth)+'px';
+    mirror.style.whiteSpace=style.whiteSpace==='pre'?'pre':'pre-wrap';
+    mirror.appendChild(document.createTextNode(area.value.slice(0,position)));
+    const marker=document.createElement('span');
+    marker.textContent=end===null?'\u200b':area.value.slice(position,end)||'\u200b';
+    mirror.appendChild(marker);
+    if(end!==null)mirror.appendChild(document.createTextNode(area.value.slice(end)));
+    document.body.appendChild(mirror);
+    return {mirror,marker};
+  }
+
+  function textareaOffsetTop(area,position){
+    const {mirror,marker}=buildTextareaMirror(area,position);
+    const top=marker.offsetTop;mirror.remove();
+    return top;
+  }
+
+  // A textarea does not paint its selection while it is not focused, so the current match is
+  // painted by fixed-position boxes laid over the matching text.
+  let findOverlayMatch=null;
+  function drawTextareaHighlight(){
+    document.querySelectorAll('.find-hit').forEach(node=>node.remove());
+    if(!findOverlayMatch||!isSourceTab()||el.markdownSource.hidden)return;
+    const area=el.markdownSource,box=area.getBoundingClientRect(),style=getComputedStyle(area);
+    const {mirror,marker}=buildTextareaMirror(area,...findOverlayMatch);
+    const base=mirror.getBoundingClientRect();
+    const minX=box.left+parseFloat(style.borderLeftWidth),minY=box.top+parseFloat(style.borderTopWidth);
+    const maxX=minX+area.clientWidth,maxY=minY+area.clientHeight;
+    for(const rect of marker.getClientRects()){
+      const left=minX+(rect.left-base.left-parseFloat(style.borderLeftWidth))-area.scrollLeft;
+      const top=minY+(rect.top-base.top)-area.scrollTop;
+      const x1=Math.max(left,minX),x2=Math.min(left+rect.width,maxX),y1=Math.max(top,minY),y2=Math.min(top+rect.height,maxY);
+      if(x2<=x1||y2<=y1)continue;
+      const hit=document.createElement('div');hit.className='find-hit';
+      hit.style.cssText=`left:${x1}px;top:${y1}px;width:${x2-x1}px;height:${y2-y1}px`;
+      document.body.appendChild(hit);
+    }
+    mirror.remove();
+  }
+  el.markdownSource.addEventListener('scroll',()=>{if(findOverlayMatch)drawTextareaHighlight();});
+  window.addEventListener('resize',()=>{if(findOverlayMatch)drawTextareaHighlight();});
+
+  // Selects a match and scrolls it into view. keepFocusIn leaves keyboard focus where the user
+  // is typing (the Find box) instead of moving it into the document.
+  function selectFindMatch(start,end,{keepFocusIn=null}={}){
     if(isSourceTab()){
       if(isMarkdownTab())setMarkdownMode('edit',{focus:false});
-      el.markdownSource.focus();
-      el.markdownSource.setSelectionRange(start,end);
+      const area=el.markdownSource;
+      area.focus({preventScroll:true});
+      area.setSelectionRange(start,end);
+      const top=textareaOffsetTop(area,start),line=parseFloat(getComputedStyle(area).lineHeight)||24;
+      if(top<area.scrollTop||top+line>area.scrollTop+area.clientHeight)area.scrollTop=Math.max(0,top-area.clientHeight/3);
+      if(keepFocusIn){
+        const caret=[keepFocusIn.selectionStart,keepFocusIn.selectionEnd];keepFocusIn.focus({preventScroll:true});keepFocusIn.setSelectionRange(...caret);
+        findOverlayMatch=[start,end];drawTextareaHighlight();
+      }else{findOverlayMatch=null;drawTextareaHighlight();}
       return true;
     }
     const range=richRangeForLogicalOffsets(start,end);
     if(!range)return false;
-    const sel=getSelection();sel.removeAllRanges();sel.addRange(range);el.editor.focus();
+    const sel=getSelection();sel.removeAllRanges();sel.addRange(range);
+    if(!keepFocusIn)el.editor.focus({preventScroll:true});
+    const anchor=range.startContainer.nodeType===Node.TEXT_NODE?range.startContainer.parentElement:range.startContainer;
+    anchor?.scrollIntoView?.({block:'center',inline:'nearest'});
+    if(keepFocusIn){
+      const caret=[keepFocusIn.selectionStart,keepFocusIn.selectionEnd];
+      keepFocusIn.focus({preventScroll:true});keepFocusIn.setSelectionRange(...caret);
+      // Focusing the input drops the page selection in some browsers; repaint the match with the
+      // CSS Highlight API (falls back to the plain selection where unsupported).
+      if(window.CSS?.highlights&&typeof Highlight==='function')CSS.highlights.set('notepad-find-match',new Highlight(range));
+    }
     return true;
   }
 
-  function refreshFindMatches(){
+  function clearFindHighlight(){try{CSS.highlights?.delete('notepad-find-match');}catch{}findOverlayMatch=null;document.querySelectorAll('.find-hit').forEach(node=>node.remove());}
+
+  function refreshFindMatches({fromTyping=false}={}){
     const needle=el.findInput.value;findMatches=[];findIndex=-1;
+    clearFindHighlight();
     if(!needle){el.findMatchCount.textContent='0/0';return;}
     const sourceMode=isSourceTab();
     const richMap=sourceMode?null:richSearchMap();
@@ -87,8 +176,13 @@
       }
       pos+=Math.max(1,needle.length);
     }
-    el.findMatchCount.textContent=findMatches.length?`1/${findMatches.length}`:'0/0';
-    if(findMatches.length){findIndex=0;selectFindMatch(...findMatches[0]);}
+    el.findMatchCount.textContent=findMatches.length?`${Math.max(0,findMatches.findIndex(m=>m[0]>=findAnchor))+1}/${findMatches.length}`:'0/0';
+    if(findMatches.length){
+      // Start at the first match at/after where the cursor was when Find opened (wrapping to the
+      // top), and keep focus in the Find box while typing.
+      findIndex=Math.max(0,findMatches.findIndex(m=>m[0]>=findAnchor));
+      selectFindMatch(...findMatches[findIndex],{keepFocusIn:fromTyping&&!el.findBar.hidden?el.findInput:null});
+    }
   }
 
   function selectTextOffsets(start,end){
@@ -99,10 +193,10 @@
     selectFindMatch(start,end);
   }
 
-  function stepFind(dir){
+  function stepFind(dir,{keepFocusIn=null}={}){
     if(!findMatches.length)return;
     findIndex=(findIndex+dir+findMatches.length)%findMatches.length;
-    selectFindMatch(...findMatches[findIndex]);
+    selectFindMatch(...findMatches[findIndex],{keepFocusIn});
     el.findMatchCount.textContent=`${findIndex+1}/${findMatches.length}`;
   }
 

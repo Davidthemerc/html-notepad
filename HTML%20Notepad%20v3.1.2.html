@@ -1563,6 +1563,9 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
   .tab-close { min-width: 32px; min-height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; margin-right: -6px; }
 }
 
+::highlight(notepad-find-match){background-color:#ffd54a;color:#000}
+.find-hit{position:fixed;z-index:5;pointer-events:none;background:rgba(255,213,74,.55);border-radius:2px}
+
 </style>
 </head>
 <body>
@@ -1768,7 +1771,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
     <span id="charCount">0 chars</span>
     <span id="cursorPosition">Ln 1, Col 1</span>
     <span class="zoom-control"><button id="zoomOutBtn" title="Zoom out">−</button><span id="zoomLabel">100%</span><button id="zoomInBtn" title="Zoom in">+</button></span>
-    <span>v3.1.1</span>
+    <span>v3.1.2</span>
   </div>
 </div>
 
@@ -2086,7 +2089,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
   <div class="manual-head">
     <div>
       <div id="manualDialogTitle" class="manual-title">HTML Notepad User Manual</div>
-      <div class="manual-version">Integrated Help · v3.1.1</div>
+      <div class="manual-version">Integrated Help · v3.1.2</div>
     </div>
     <button id="manualCloseTopBtn" type="button" class="manual-close" title="Close Manual (Esc)" aria-label="Close Manual">×</button>
   </div>
@@ -2108,7 +2111,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
 </dialog>
 
 <div id="manualSectionStore" hidden>
-<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.1.1</h2>
+<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.1.2</h2>
 <p>HTML Notepad is a self-contained, offline notepad that runs in a web
 browser. It provides tabs, rich-text formatting, folders, embedded
 images, search tools, printing, backups, and session recovery without
@@ -2121,7 +2124,7 @@ operating system unless you explicitly export a document or create a
 JSON backup.</p>
 <hr /></section>
 <section data-manual-id="starting-html-notepad" data-manual-title="1. Starting HTML Notepad"><h2>1. Starting HTML Notepad</h2>
-<p>For the standalone edition, open <code>HTML Notepad v3.1.1.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
+<p>For the standalone edition, open <code>HTML Notepad v3.1.2.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
 <p>A new, empty <strong>Untitled</strong> document is available when
 there is no previous workspace to restore. HTML Notepad also remembers
 the prior session, including open tabs, the active tab, tab order,
@@ -3105,12 +3108,12 @@ Press <strong>/</strong> or <strong>Ctrl+F</strong> to focus manual
 search, <strong>Alt+Up</strong> or <strong>Alt+Down</strong> to move
 between sections, and <strong>Escape</strong> to close the popup.</p>
 <hr />
-<p><em>HTML Notepad User Manual — v3.1.1</em></p></section>
+<p><em>HTML Notepad User Manual — v3.1.2</em></p></section>
 
 <section data-manual-id="pwa-and-standalone-builds" data-manual-title="28. PWA and Standalone Builds"><h2>28. PWA and Standalone Builds</h2>
-<p>Version 3.1.1 is published in two forms that share the same application code and features.</p>
+<p>Version 3.1.2 is published in two forms that share the same application code and features.</p>
 <ul>
-<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.1.1.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
+<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.1.2.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
 <li><strong>Modular/PWA:</strong> the GitHub build uses <code>index.html</code>, <code>assets/styles.css</code>, separate responsibility-based JavaScript files under <code>assets/js/</code>, <code>manifest.webmanifest</code>, icons, and <code>sw.js</code>. The hosted PWA runs those separate JavaScript files directly; it does not use a monolithic <code>app.js</code>. Shared runtime state is initialized during startup after all ordered scripts have loaded, so cross-file dependencies do not rely on single-file function hoisting. The service worker only intercepts same-origin HTTP/HTTPS requests; browser-extension and other non-web schemes are ignored. The Find/Replace bar reserves its own height above the ruler on desktop. Host the built folder over HTTPS (for example with GitHub Pages or Cloudflare Pages) to make it installable and to allow the service worker to cache the application shell for offline launches.</li>
 </ul>
 <p>The hosted PWA does not upload Notepad documents. Saved documents, folders, images, settings, and drafts continue to use browser-local IndexedDB and localStorage. The hosting server supplies the application files themselves.</p>
@@ -3151,7 +3154,7 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
 </dialog>
 
 <script>
-  const APP_VERSION = '3.1.1';
+  const APP_VERSION = '3.1.2';
   const DB_NAME = 'HTMLNotepadDB';
   const DB_VERSION = 3;
   const FILE_STORE = 'files';
@@ -176678,12 +176681,30 @@ $tec
   // FIND / REPLACE
   // ===========================================================================
 
+  // Logical text offset of the caret/selection start, so a new search begins at the cursor
+  // instead of always jumping back to the top of the document.
+  let findAnchor=0;
+  function currentLogicalOffset(){
+    if(isSourceTab())return el.markdownSource.selectionStart||0;
+    const sel=getSelection();
+    if(!sel||!sel.rangeCount||!el.editor.contains(sel.anchorNode))return 0;
+    const range=sel.getRangeAt(0),map=richSearchMap();
+    const index=map.points.findIndex(point=>point&&point.node===range.startContainer&&point.offset>=range.startOffset);
+    return index<0?0:index;
+  }
   function openFindBar(replace=false){
     if (!requireActiveDocument()) return;
+    if(el.findBar.hidden)findAnchor=currentLogicalOffset();
     el.findBar.hidden=false; el.replaceInput.style.display=replace?'':'none'; el.replaceOneBtn.style.display=replace?'':'none'; el.replaceAllBtn.style.display=replace?'':'none';
     setTimeout(()=>{el.findInput.focus();el.findInput.select();},0); refreshFindMatches();
   }
-  function closeFindBar(){el.findBar.hidden=true;findMatches=[];findIndex=-1;el.editor.focus();}
+  function closeFindBar(){
+    // Leave the current match selected in the document so editing can continue from it.
+    const match=findIndex>=0?findMatches[findIndex]:null;
+    el.findBar.hidden=true;clearFindHighlight();findMatches=[];findIndex=-1;
+    if(match&&selectFindMatch(...match))return;
+    if(isSourceTab())el.markdownSource.focus();else el.editor.focus();
+  }
     function richSearchMap(root=el.editor){
     const blockTags=new Set([
       'ADDRESS','ARTICLE','ASIDE','BLOCKQUOTE','DIV','DL','DT','DD','FIGCAPTION',
@@ -176735,21 +176756,92 @@ $tec
     return range;
   }
 
-  function selectFindMatch(start,end){
+  // Pixel offset of a character position inside the textarea (accounts for wrapping), measured
+  // with a hidden mirror element that copies the textarea's text metrics.
+  function buildTextareaMirror(area,position,end=null){
+    const style=getComputedStyle(area),mirror=document.createElement('div');
+    ['fontFamily','fontSize','fontWeight','fontStyle','letterSpacing','lineHeight','tabSize','textTransform','whiteSpace','wordBreak','overflowWrap','paddingTop','paddingRight','paddingBottom','paddingLeft','borderLeftWidth','borderRightWidth','boxSizing']
+      .forEach(prop=>{mirror.style[prop]=style[prop];});
+    mirror.style.position='absolute';mirror.style.visibility='hidden';mirror.style.top='0';mirror.style.left='-9999px';
+    mirror.style.width=area.clientWidth+parseFloat(style.borderLeftWidth)+parseFloat(style.borderRightWidth)+'px';
+    mirror.style.whiteSpace=style.whiteSpace==='pre'?'pre':'pre-wrap';
+    mirror.appendChild(document.createTextNode(area.value.slice(0,position)));
+    const marker=document.createElement('span');
+    marker.textContent=end===null?'\u200b':area.value.slice(position,end)||'\u200b';
+    mirror.appendChild(marker);
+    if(end!==null)mirror.appendChild(document.createTextNode(area.value.slice(end)));
+    document.body.appendChild(mirror);
+    return {mirror,marker};
+  }
+
+  function textareaOffsetTop(area,position){
+    const {mirror,marker}=buildTextareaMirror(area,position);
+    const top=marker.offsetTop;mirror.remove();
+    return top;
+  }
+
+  // A textarea does not paint its selection while it is not focused, so the current match is
+  // painted by fixed-position boxes laid over the matching text.
+  let findOverlayMatch=null;
+  function drawTextareaHighlight(){
+    document.querySelectorAll('.find-hit').forEach(node=>node.remove());
+    if(!findOverlayMatch||!isSourceTab()||el.markdownSource.hidden)return;
+    const area=el.markdownSource,box=area.getBoundingClientRect(),style=getComputedStyle(area);
+    const {mirror,marker}=buildTextareaMirror(area,...findOverlayMatch);
+    const base=mirror.getBoundingClientRect();
+    const minX=box.left+parseFloat(style.borderLeftWidth),minY=box.top+parseFloat(style.borderTopWidth);
+    const maxX=minX+area.clientWidth,maxY=minY+area.clientHeight;
+    for(const rect of marker.getClientRects()){
+      const left=minX+(rect.left-base.left-parseFloat(style.borderLeftWidth))-area.scrollLeft;
+      const top=minY+(rect.top-base.top)-area.scrollTop;
+      const x1=Math.max(left,minX),x2=Math.min(left+rect.width,maxX),y1=Math.max(top,minY),y2=Math.min(top+rect.height,maxY);
+      if(x2<=x1||y2<=y1)continue;
+      const hit=document.createElement('div');hit.className='find-hit';
+      hit.style.cssText=`left:${x1}px;top:${y1}px;width:${x2-x1}px;height:${y2-y1}px`;
+      document.body.appendChild(hit);
+    }
+    mirror.remove();
+  }
+  el.markdownSource.addEventListener('scroll',()=>{if(findOverlayMatch)drawTextareaHighlight();});
+  window.addEventListener('resize',()=>{if(findOverlayMatch)drawTextareaHighlight();});
+
+  // Selects a match and scrolls it into view. keepFocusIn leaves keyboard focus where the user
+  // is typing (the Find box) instead of moving it into the document.
+  function selectFindMatch(start,end,{keepFocusIn=null}={}){
     if(isSourceTab()){
       if(isMarkdownTab())setMarkdownMode('edit',{focus:false});
-      el.markdownSource.focus();
-      el.markdownSource.setSelectionRange(start,end);
+      const area=el.markdownSource;
+      area.focus({preventScroll:true});
+      area.setSelectionRange(start,end);
+      const top=textareaOffsetTop(area,start),line=parseFloat(getComputedStyle(area).lineHeight)||24;
+      if(top<area.scrollTop||top+line>area.scrollTop+area.clientHeight)area.scrollTop=Math.max(0,top-area.clientHeight/3);
+      if(keepFocusIn){
+        const caret=[keepFocusIn.selectionStart,keepFocusIn.selectionEnd];keepFocusIn.focus({preventScroll:true});keepFocusIn.setSelectionRange(...caret);
+        findOverlayMatch=[start,end];drawTextareaHighlight();
+      }else{findOverlayMatch=null;drawTextareaHighlight();}
       return true;
     }
     const range=richRangeForLogicalOffsets(start,end);
     if(!range)return false;
-    const sel=getSelection();sel.removeAllRanges();sel.addRange(range);el.editor.focus();
+    const sel=getSelection();sel.removeAllRanges();sel.addRange(range);
+    if(!keepFocusIn)el.editor.focus({preventScroll:true});
+    const anchor=range.startContainer.nodeType===Node.TEXT_NODE?range.startContainer.parentElement:range.startContainer;
+    anchor?.scrollIntoView?.({block:'center',inline:'nearest'});
+    if(keepFocusIn){
+      const caret=[keepFocusIn.selectionStart,keepFocusIn.selectionEnd];
+      keepFocusIn.focus({preventScroll:true});keepFocusIn.setSelectionRange(...caret);
+      // Focusing the input drops the page selection in some browsers; repaint the match with the
+      // CSS Highlight API (falls back to the plain selection where unsupported).
+      if(window.CSS?.highlights&&typeof Highlight==='function')CSS.highlights.set('notepad-find-match',new Highlight(range));
+    }
     return true;
   }
 
-  function refreshFindMatches(){
+  function clearFindHighlight(){try{CSS.highlights?.delete('notepad-find-match');}catch{}findOverlayMatch=null;document.querySelectorAll('.find-hit').forEach(node=>node.remove());}
+
+  function refreshFindMatches({fromTyping=false}={}){
     const needle=el.findInput.value;findMatches=[];findIndex=-1;
+    clearFindHighlight();
     if(!needle){el.findMatchCount.textContent='0/0';return;}
     const sourceMode=isSourceTab();
     const richMap=sourceMode?null:richSearchMap();
@@ -176763,8 +176855,13 @@ $tec
       }
       pos+=Math.max(1,needle.length);
     }
-    el.findMatchCount.textContent=findMatches.length?`1/${findMatches.length}`:'0/0';
-    if(findMatches.length){findIndex=0;selectFindMatch(...findMatches[0]);}
+    el.findMatchCount.textContent=findMatches.length?`${Math.max(0,findMatches.findIndex(m=>m[0]>=findAnchor))+1}/${findMatches.length}`:'0/0';
+    if(findMatches.length){
+      // Start at the first match at/after where the cursor was when Find opened (wrapping to the
+      // top), and keep focus in the Find box while typing.
+      findIndex=Math.max(0,findMatches.findIndex(m=>m[0]>=findAnchor));
+      selectFindMatch(...findMatches[findIndex],{keepFocusIn:fromTyping&&!el.findBar.hidden?el.findInput:null});
+    }
   }
 
   function selectTextOffsets(start,end){
@@ -176775,10 +176872,10 @@ $tec
     selectFindMatch(start,end);
   }
 
-  function stepFind(dir){
+  function stepFind(dir,{keepFocusIn=null}={}){
     if(!findMatches.length)return;
     findIndex=(findIndex+dir+findMatches.length)%findMatches.length;
-    selectFindMatch(...findMatches[findIndex]);
+    selectFindMatch(...findMatches[findIndex],{keepFocusIn});
     el.findMatchCount.textContent=`${findIndex+1}/${findMatches.length}`;
   }
 
@@ -177855,7 +177952,7 @@ $tec
     // ---- Zoom and find/replace --------------------------------------------
     el.zoomOutBtn.addEventListener('click', () => changeZoom(-10));
     el.zoomInBtn.addEventListener('click', () => changeZoom(10));
-    el.findInput.addEventListener('input', refreshFindMatches);
+    el.findInput.addEventListener('input', () => refreshFindMatches({ fromTyping: true }));
     el.findCaseToggle.addEventListener('change', refreshFindMatches);
     el.findPrevBtn.addEventListener('click', () => stepFind(-1));
     el.findNextBtn.addEventListener('click', () => stepFind(1));
@@ -177865,7 +177962,7 @@ $tec
     el.findInput.addEventListener('keydown', event => {
       if (event.key === 'Enter') {
         event.preventDefault();
-        stepFind(event.shiftKey ? -1 : 1);
+        stepFind(event.shiftKey ? -1 : 1, { keepFocusIn: el.findInput });
       } else if (event.key === 'Escape') {
         closeFindBar();
       }

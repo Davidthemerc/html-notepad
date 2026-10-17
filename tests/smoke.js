@@ -94,6 +94,21 @@ async function suite(browser, label, url, { mobile = false } = {}) {
       await page.reload(); await page.waitForTimeout(1800);
       ok(/locked/i.test(await page.evaluate(() => document.getElementById('statusMessage').textContent)), 'status mentions locked');
     });
+    await test('find: typing keeps focus in the Find box, Enter steps to the next match', async () => {
+      await newDoc('Plain');
+      const body = Array.from({ length: 60 }, (_, i) => `line ${i} ${i % 10 === 0 ? 'needle' : 'hay'}`).join('\n');
+      await page.fill('#markdownSource', body); await page.dispatchEvent('#markdownSource', 'input');
+      await page.click('#markdownSource'); await page.keyboard.press('Control+Home');
+      await page.keyboard.press('Control+F'); await page.waitForTimeout(250);
+      await page.keyboard.type('needle'); await page.waitForTimeout(200);
+      eq(await page.evaluate(() => document.activeElement.id), 'findInput', 'focus stays in Find');
+      eq(await page.evaluate(() => document.getElementById('markdownSource').value), body, 'document untouched');
+      eq(await page.evaluate(() => document.getElementById('findMatchCount').textContent), '1/6');
+      await page.keyboard.press('Enter'); await page.keyboard.press('Enter'); await page.waitForTimeout(150);
+      eq(await page.evaluate(() => document.getElementById('findMatchCount').textContent), '3/6');
+      ok(await page.evaluate(() => document.getElementById('markdownSource').scrollTop > 0), 'scrolled to the match');
+      await page.keyboard.press('Escape');
+    });
   }
 
   await test('Markdown: code spans, links with underscores, emphasis', async () => {

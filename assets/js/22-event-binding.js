@@ -551,7 +551,7 @@
     // ---- Zoom and find/replace --------------------------------------------
     el.zoomOutBtn.addEventListener('click', () => changeZoom(-10));
     el.zoomInBtn.addEventListener('click', () => changeZoom(10));
-    el.findInput.addEventListener('input', refreshFindMatches);
+    el.findInput.addEventListener('input', () => refreshFindMatches({ fromTyping: true }));
     el.findCaseToggle.addEventListener('change', refreshFindMatches);
     el.findPrevBtn.addEventListener('click', () => stepFind(-1));
     el.findNextBtn.addEventListener('click', () => stepFind(1));
@@ -561,7 +561,7 @@
     el.findInput.addEventListener('keydown', event => {
       if (event.key === 'Enter') {
         event.preventDefault();
-        stepFind(event.shiftKey ? -1 : 1);
+        stepFind(event.shiftKey ? -1 : 1, { keepFocusIn: el.findInput });
       } else if (event.key === 'Escape') {
         closeFindBar();
       }
