@@ -190,7 +190,7 @@
     $('collapseAllFoldersBtn').addEventListener('click', collapseAllFolders);
     $('importFolderBtn').addEventListener('click', () => { closeFilesTreeMenu(); el.importFolderInput.click(); });
     el.importFolderInput.addEventListener('change', async () => {
-      const selectedFiles = [...(el.importFolderInput.files || [])].filter(f => /\.(txt|html?|md|markdown)$/i.test(f.name));
+      const selectedFiles = [...(el.importFolderInput.files || [])].filter(f => /\.(txt|html?|md|markdown|docx)$/i.test(f.name));
       if (selectedFiles.length) await importDocuments(selectedFiles);
       else if (el.importFolderInput.files?.length) toast('No .txt, .html or .md files found in that folder.');
       el.importFolderInput.value = '';
@@ -551,6 +551,7 @@
     // ---- Zoom and find/replace --------------------------------------------
     el.zoomOutBtn.addEventListener('click', () => changeZoom(-10));
     el.zoomInBtn.addEventListener('click', () => changeZoom(10));
+    setupOutlinePanel();
     el.findInput.addEventListener('input', () => refreshFindMatches({ fromTyping: true }));
     el.findCaseToggle.addEventListener('change', refreshFindMatches);
     el.findPrevBtn.addEventListener('click', () => stepFind(-1));

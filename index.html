@@ -29,6 +29,7 @@
     <button id="saveAsBtn" class="mobile-extra" title="Save As (Ctrl+Shift+S)">Save As</button>
     <button id="printBtn" class="mobile-extra" title="Print document (Ctrl+P)" aria-label="Print">Print</button>
     <button id="trashBtn" class="mobile-extra" title="Open Trash">Trash</button>
+    <button id="outlineBtn" class="mobile-extra" title="Outline: jump between headings (Ctrl+Alt+O)" aria-pressed="false">Outline</button>
     <button id="splitViewBtn" class="desktop-split-control" type="button" title="Show two documents side by side" aria-pressed="false">Split View</button>
     <div class="spacer"></div>
     <button id="backupRestoreBtn" class="mobile-extra" title="Backup, restore, and restore safety">Backup &amp; Restore</button>
@@ -219,7 +220,7 @@
     <span id="charCount">0 chars</span>
     <span id="cursorPosition">Ln 1, Col 1</span>
     <span class="zoom-control"><button id="zoomOutBtn" title="Zoom out">−</button><span id="zoomLabel">100%</span><button id="zoomInBtn" title="Zoom in">+</button></span>
-    <span>v3.1.2</span>
+    <span>v3.2.0</span>
   </div>
 </div>
 
@@ -426,6 +427,7 @@
     <label class="checkbox-row"><input id="autoLinksToggle" type="checkbox" /> Automatically recognize clear web URLs and make them clickable/tappable</label>
     <label class="checkbox-row"><input id="autosaveToggle" type="checkbox" /> Autosave saved documents after a short pause</label>
     <label class="checkbox-row"><input id="lineNumbersToggle" type="checkbox" /> Show line numbers</label>
+    <label class="checkbox-row"><input id="largeDocToggle" type="checkbox" /> Large-document mode: for documents over about 2 MB (such as big Word imports), skip autosave and recovery copies in browser storage. Save manually with Ctrl+S.</label>
     <div class="small-note">Settings, font-color history, and unsaved drafts are stored locally and included in JSON backups. Font family and size are stored with document formatting.</div>
   </div>
   <div class="dialog-actions">
@@ -493,7 +495,7 @@
 <input id="restoreInput" type="file" accept="application/json,.json" hidden />
 <input id="imageInput" type="file" accept="image/*" hidden />
 <input id="replaceImageInput" type="file" accept="image/*" hidden />
-<input id="importDocInput" type="file" accept=".txt,.html,.htm,.md,.markdown,.json,text/plain,text/html,text/markdown,application/json" multiple hidden />
+<input id="importDocInput" type="file" accept=".txt,.html,.htm,.md,.markdown,.docx,.json,text/plain,text/html,text/markdown,application/json,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple hidden />
 <input id="importFolderInput" type="file" webkitdirectory multiple hidden />
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -537,7 +539,7 @@
   <div class="manual-head">
     <div>
       <div id="manualDialogTitle" class="manual-title">HTML Notepad User Manual</div>
-      <div class="manual-version">Integrated Help · v3.1.2</div>
+      <div class="manual-version">Integrated Help · v3.2.0</div>
     </div>
     <button id="manualCloseTopBtn" type="button" class="manual-close" title="Close Manual (Esc)" aria-label="Close Manual">×</button>
   </div>
@@ -559,7 +561,7 @@
 </dialog>
 
 <div id="manualSectionStore" hidden>
-<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.1.2</h2>
+<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.2.0</h2>
 <p>HTML Notepad is a self-contained, offline notepad that runs in a web
 browser. It provides tabs, rich-text formatting, folders, embedded
 images, search tools, printing, backups, and session recovery without
@@ -572,7 +574,7 @@ operating system unless you explicitly export a document or create a
 JSON backup.</p>
 <hr /></section>
 <section data-manual-id="starting-html-notepad" data-manual-title="1. Starting HTML Notepad"><h2>1. Starting HTML Notepad</h2>
-<p>For the standalone edition, open <code>HTML Notepad v3.1.2.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
+<p>For the standalone edition, open <code>HTML Notepad v3.2.0.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
 <p>A new, empty <strong>Untitled</strong> document is available when
 there is no previous workspace to restore. HTML Notepad also remembers
 the prior session, including open tabs, the active tab, tab order,
@@ -917,9 +919,21 @@ becomes plain-text documents in an “Imported Notes” folder.</p>
 into HTML Notepad without opening the Files drawer. The Import button in
 the Files drawer remains available as an equivalent shortcut.</p>
 <p>Import accepts <code>.txt</code>, <code>.html</code>,
-<code>.htm</code>, <code>.md</code>, and <code>.markdown</code>
-documents. You can select multiple supported files in the computer’s
-file picker.</p>
+<code>.htm</code>, <code>.md</code>, <code>.markdown</code>, and Word
+<code>.docx</code> documents. You can select multiple supported files in the
+computer’s file picker.</p>
+<p><strong>Word documents:</strong> a <code>.docx</code> is converted to a rich-text
+document with its text formatting, links, simple lists, tables, images, and the
+Heading 1–6 fonts, sizes, and colors from the Word styles. If the document has a
+Table of Contents it is detected (the static page-numbered list is not copied);
+use <strong>Outline</strong> to jump between the headings instead. This is a basic
+import, not full Word compatibility: headers, footers, footnotes, comments,
+text boxes, and page layout are not carried over.</p>
+<h3>Outline</h3>
+<p><strong>Outline</strong> (top bar, or Ctrl+Alt+O) opens a panel listing the
+document’s headings — Heading 1–6 in rich text and <code>#</code> headings in
+Markdown. Choose how many levels to show (Heading 1, 1–2, 1–3, or all) and click
+a heading to jump to it.</p>
 <p>Successfully imported documents open immediately as tabs. For a
 single import, that document becomes active immediately. If several
 files are imported together, they open in the selected order and the
@@ -1556,12 +1570,12 @@ Press <strong>/</strong> or <strong>Ctrl+F</strong> to focus manual
 search, <strong>Alt+Up</strong> or <strong>Alt+Down</strong> to move
 between sections, and <strong>Escape</strong> to close the popup.</p>
 <hr />
-<p><em>HTML Notepad User Manual — v3.1.2</em></p></section>
+<p><em>HTML Notepad User Manual — v3.2.0</em></p></section>
 
 <section data-manual-id="pwa-and-standalone-builds" data-manual-title="28. PWA and Standalone Builds"><h2>28. PWA and Standalone Builds</h2>
-<p>Version 3.1.2 is published in two forms that share the same application code and features.</p>
+<p>Version 3.2.0 is published in two forms that share the same application code and features.</p>
 <ul>
-<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.1.2.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
+<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.2.0.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
 <li><strong>Modular/PWA:</strong> the GitHub build uses <code>index.html</code>, <code>assets/styles.css</code>, separate responsibility-based JavaScript files under <code>assets/js/</code>, <code>manifest.webmanifest</code>, icons, and <code>sw.js</code>. The hosted PWA runs those separate JavaScript files directly; it does not use a monolithic <code>app.js</code>. Shared runtime state is initialized during startup after all ordered scripts have loaded, so cross-file dependencies do not rely on single-file function hoisting. The service worker only intercepts same-origin HTTP/HTTPS requests; browser-extension and other non-web schemes are ignored. The Find/Replace bar reserves its own height above the ruler on desktop. Host the built folder over HTTPS (for example with GitHub Pages or Cloudflare Pages) to make it installable and to allow the service worker to cache the application shell for offline launches.</li>
 </ul>
 <p>The hosted PWA does not upload Notepad documents. Saved documents, folders, images, settings, and drafts continue to use browser-local IndexedDB and localStorage. The hosting server supplies the application files themselves.</p>
@@ -1621,6 +1635,7 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
 <script src="./assets/js/07-tabs-session-split.js" defer></script>
 <script src="./assets/js/08-markdown.js" defer></script>
 <script src="./assets/js/09-import-export.js" defer></script>
+<script src="./assets/js/09a-docx-import.js" defer></script>
 <script src="./assets/js/10-protection.js" defer></script>
 <script src="./assets/js/11-trash.js" defer></script>
 <script src="./assets/js/12-backup-restore.js" defer></script>
@@ -1630,6 +1645,7 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
 <script src="./assets/js/16-context-clipboard-print.js" defer></script>
 <script src="./assets/js/17-dirty-recovery-settings.js" defer></script>
 <script src="./assets/js/18-find-replace.js" defer></script>
+<script src="./assets/js/18a-outline.js" defer></script>
 <script src="./assets/js/19-tab-key.js" defer></script>
 <script src="./assets/js/20-editor-events.js" defer></script>
 <script src="./assets/js/21-help-manual.js" defer></script>

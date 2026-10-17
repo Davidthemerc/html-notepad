@@ -320,6 +320,19 @@
 
     for (const disk of [...fileList]) {
       try {
+        if (/\.docx$/i.test(disk.name)) {
+          const converted = await importDocxFile(disk);
+          for (const asset of converted.assets) await storePut(ASSET_STORE, asset);
+          const parentId = (disk.webkitRelativePath || '').includes('/')
+            ? await ensureImportFolder(disk.webkitRelativePath.split('/').slice(0, -1).filter(Boolean), folderCache) : null;
+          await addDocument(disk.name.replace(/\.docx$/i, '') || 'Imported', 'rich', converted.html, parentId);
+          const notes = [];
+          if (converted.toc) notes.push(`Table of Contents detected (levels ${converted.toc.levels[0]}–${converted.toc.levels[1]})`);
+          notes.push(`${converted.headings} heading${converted.headings === 1 ? '' : 's'}`);
+          if (converted.skippedImages) notes.push(`${converted.skippedImages} unsupported image${converted.skippedImages === 1 ? '' : 's'} skipped`);
+          toast(`${disk.name}: ${notes.join(', ')}. Use Outline to jump between headings.`);
+          continue;
+        }
         const raw = await disk.text();
         if (/\.json$/i.test(disk.name) || disk.type === 'application/json') {
           const data = JSON.parse(raw);

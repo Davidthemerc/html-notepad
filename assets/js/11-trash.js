@@ -315,7 +315,7 @@
   function persistUnsavedDrafts() {
     captureEditorIntoActive();
     const drafts = tabs
-      .filter(t => !t.fileId)
+      .filter(t => !t.fileId && !isLargeDocumentTab(t))
       .map(t => ({
         draftId: t.tabId,
         name: t.name,

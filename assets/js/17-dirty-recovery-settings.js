@@ -2,6 +2,14 @@
   // DIRTY STATE, RECOVERY & SETTINGS
   // ===========================================================================
 
+  // Optional (Settings, off by default): very large documents are kept out of browser storage
+  // (draft/recovery copies in localStorage/IndexedDB) and are not autosaved; they are only
+  // written when the user saves.
+  const LARGE_DOC_CHARS = 2000000;
+  function isLargeDocumentTab(tab) {
+    return !!settings?.largeDocMode && (tab?.content || '').length > LARGE_DOC_CHARS;
+  }
+
   function markDirtyFromEditor() {
     const tab = currentTab();
     if (!tab) return;
@@ -11,6 +19,10 @@
     tab.updatedAt = new Date().toISOString();
     renderTabs();
     updateCounts();
+    if (isLargeDocumentTab(tab) && !tab.largeDocNoticed) {
+      tab.largeDocNoticed = true;
+      toast('Large-document mode: autosave and recovery copies are off for this document. Save with Ctrl+S.');
+    }
 
     if (!tab.fileId) persistUnsavedDraftsSoon();
     persistSessionSoon();
@@ -23,7 +35,7 @@
 
     captureEditorIntoActive();
     const tab = currentTab();
-    if (!tab) {
+    if (!tab || isLargeDocumentTab(tab)) {
       writeJsonStorage(LS_RECOVERY, null);
       return;
     }
@@ -83,7 +95,7 @@
       // Recovery always tracks the active editor. Autosave is a separate decision and only
       // writes a dirty, already-saved document back to IndexedDB.
       saveRecoverySnapshot();
-      if (tab.dirty && settings.autosave && tab.fileId) await saveCurrent(false);
+      if (tab.dirty && settings.autosave && tab.fileId && !isLargeDocumentTab(tab)) await saveCurrent(false);
     }, 1500);
   }
 
@@ -94,6 +106,7 @@
     el.autoLinksToggle.checked = settings.autoLinks;
     el.autosaveToggle.checked = settings.autosave;
     el.lineNumbersToggle.checked = settings.lineNumbers;
+    el.largeDocToggle.checked = !!settings.largeDocMode;
     el.settingsDialog.showModal();
   }
 
@@ -107,6 +120,7 @@
       autoLinks: el.autoLinksToggle.checked,
       autosave: el.autosaveToggle.checked,
       lineNumbers: el.lineNumbersToggle.checked,
+      largeDocMode: el.largeDocToggle.checked,
       colorHistory: Array.isArray(settings.colorHistory) ? settings.colorHistory.slice(0, 10) : [],
       customDictionary: Array.isArray(settings.customDictionary) ? settings.customDictionary : []
     };

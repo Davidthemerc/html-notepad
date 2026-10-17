@@ -1566,6 +1566,21 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
 ::highlight(notepad-find-match){background-color:#ffd54a;color:#000}
 .find-hit{position:fixed;z-index:5;pointer-events:none;background:rgba(255,213,74,.55);border-radius:2px}
 
+/* Outline panel */
+.outline-panel{position:fixed;right:12px;top:110px;bottom:44px;width:min(300px,calc(100vw - 24px));z-index:30;display:flex;flex-direction:column;background:var(--panel,#fff);color:var(--text,#222);border:1px solid var(--border,#ccd);border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.22)}
+.outline-panel[hidden]{display:none}
+.outline-head{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border,#ccd)}
+.outline-head strong{flex:1}
+.outline-head select{max-width:130px}
+.outline-close{min-width:32px;min-height:32px;padding:0;font-size:18px}
+.outline-list{flex:1;overflow:auto;padding:6px 0}
+.outline-item{display:block;width:100%;text-align:left;border:0;background:transparent;color:inherit;padding:7px 10px;min-height:36px;border-radius:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.outline-item:hover,.outline-item:focus-visible{background:var(--panel-2,#eef2f6)}
+.outline-item.level-1{font-weight:700}
+.outline-item.level-3,.outline-item.level-4,.outline-item.level-5,.outline-item.level-6{font-size:.92em;opacity:.9}
+.outline-empty{padding:14px 12px;color:var(--muted,#667);font-size:.92em}
+@media (max-width:760px){.outline-panel{top:auto;bottom:40px;height:52vh;right:12px;left:12px;width:auto}}
+
 </style>
 </head>
 <body>
@@ -1581,6 +1596,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
     <button id="saveAsBtn" class="mobile-extra" title="Save As (Ctrl+Shift+S)">Save As</button>
     <button id="printBtn" class="mobile-extra" title="Print document (Ctrl+P)" aria-label="Print">Print</button>
     <button id="trashBtn" class="mobile-extra" title="Open Trash">Trash</button>
+    <button id="outlineBtn" class="mobile-extra" title="Outline: jump between headings (Ctrl+Alt+O)" aria-pressed="false">Outline</button>
     <button id="splitViewBtn" class="desktop-split-control" type="button" title="Show two documents side by side" aria-pressed="false">Split View</button>
     <div class="spacer"></div>
     <button id="backupRestoreBtn" class="mobile-extra" title="Backup, restore, and restore safety">Backup &amp; Restore</button>
@@ -1771,7 +1787,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
     <span id="charCount">0 chars</span>
     <span id="cursorPosition">Ln 1, Col 1</span>
     <span class="zoom-control"><button id="zoomOutBtn" title="Zoom out">−</button><span id="zoomLabel">100%</span><button id="zoomInBtn" title="Zoom in">+</button></span>
-    <span>v3.1.2</span>
+    <span>v3.2.0</span>
   </div>
 </div>
 
@@ -1978,6 +1994,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
     <label class="checkbox-row"><input id="autoLinksToggle" type="checkbox" /> Automatically recognize clear web URLs and make them clickable/tappable</label>
     <label class="checkbox-row"><input id="autosaveToggle" type="checkbox" /> Autosave saved documents after a short pause</label>
     <label class="checkbox-row"><input id="lineNumbersToggle" type="checkbox" /> Show line numbers</label>
+    <label class="checkbox-row"><input id="largeDocToggle" type="checkbox" /> Large-document mode: for documents over about 2 MB (such as big Word imports), skip autosave and recovery copies in browser storage. Save manually with Ctrl+S.</label>
     <div class="small-note">Settings, font-color history, and unsaved drafts are stored locally and included in JSON backups. Font family and size are stored with document formatting.</div>
   </div>
   <div class="dialog-actions">
@@ -2045,7 +2062,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
 <input id="restoreInput" type="file" accept="application/json,.json" hidden />
 <input id="imageInput" type="file" accept="image/*" hidden />
 <input id="replaceImageInput" type="file" accept="image/*" hidden />
-<input id="importDocInput" type="file" accept=".txt,.html,.htm,.md,.markdown,.json,text/plain,text/html,text/markdown,application/json" multiple hidden />
+<input id="importDocInput" type="file" accept=".txt,.html,.htm,.md,.markdown,.docx,.json,text/plain,text/html,text/markdown,application/json,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple hidden />
 <input id="importFolderInput" type="file" webkitdirectory multiple hidden />
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -2089,7 +2106,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
   <div class="manual-head">
     <div>
       <div id="manualDialogTitle" class="manual-title">HTML Notepad User Manual</div>
-      <div class="manual-version">Integrated Help · v3.1.2</div>
+      <div class="manual-version">Integrated Help · v3.2.0</div>
     </div>
     <button id="manualCloseTopBtn" type="button" class="manual-close" title="Close Manual (Esc)" aria-label="Close Manual">×</button>
   </div>
@@ -2111,7 +2128,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
 </dialog>
 
 <div id="manualSectionStore" hidden>
-<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.1.2</h2>
+<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.2.0</h2>
 <p>HTML Notepad is a self-contained, offline notepad that runs in a web
 browser. It provides tabs, rich-text formatting, folders, embedded
 images, search tools, printing, backups, and session recovery without
@@ -2124,7 +2141,7 @@ operating system unless you explicitly export a document or create a
 JSON backup.</p>
 <hr /></section>
 <section data-manual-id="starting-html-notepad" data-manual-title="1. Starting HTML Notepad"><h2>1. Starting HTML Notepad</h2>
-<p>For the standalone edition, open <code>HTML Notepad v3.1.2.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
+<p>For the standalone edition, open <code>HTML Notepad v3.2.0.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
 <p>A new, empty <strong>Untitled</strong> document is available when
 there is no previous workspace to restore. HTML Notepad also remembers
 the prior session, including open tabs, the active tab, tab order,
@@ -2469,9 +2486,21 @@ becomes plain-text documents in an “Imported Notes” folder.</p>
 into HTML Notepad without opening the Files drawer. The Import button in
 the Files drawer remains available as an equivalent shortcut.</p>
 <p>Import accepts <code>.txt</code>, <code>.html</code>,
-<code>.htm</code>, <code>.md</code>, and <code>.markdown</code>
-documents. You can select multiple supported files in the computer’s
-file picker.</p>
+<code>.htm</code>, <code>.md</code>, <code>.markdown</code>, and Word
+<code>.docx</code> documents. You can select multiple supported files in the
+computer’s file picker.</p>
+<p><strong>Word documents:</strong> a <code>.docx</code> is converted to a rich-text
+document with its text formatting, links, simple lists, tables, images, and the
+Heading 1–6 fonts, sizes, and colors from the Word styles. If the document has a
+Table of Contents it is detected (the static page-numbered list is not copied);
+use <strong>Outline</strong> to jump between the headings instead. This is a basic
+import, not full Word compatibility: headers, footers, footnotes, comments,
+text boxes, and page layout are not carried over.</p>
+<h3>Outline</h3>
+<p><strong>Outline</strong> (top bar, or Ctrl+Alt+O) opens a panel listing the
+document’s headings — Heading 1–6 in rich text and <code>#</code> headings in
+Markdown. Choose how many levels to show (Heading 1, 1–2, 1–3, or all) and click
+a heading to jump to it.</p>
 <p>Successfully imported documents open immediately as tabs. For a
 single import, that document becomes active immediately. If several
 files are imported together, they open in the selected order and the
@@ -3108,12 +3137,12 @@ Press <strong>/</strong> or <strong>Ctrl+F</strong> to focus manual
 search, <strong>Alt+Up</strong> or <strong>Alt+Down</strong> to move
 between sections, and <strong>Escape</strong> to close the popup.</p>
 <hr />
-<p><em>HTML Notepad User Manual — v3.1.2</em></p></section>
+<p><em>HTML Notepad User Manual — v3.2.0</em></p></section>
 
 <section data-manual-id="pwa-and-standalone-builds" data-manual-title="28. PWA and Standalone Builds"><h2>28. PWA and Standalone Builds</h2>
-<p>Version 3.1.2 is published in two forms that share the same application code and features.</p>
+<p>Version 3.2.0 is published in two forms that share the same application code and features.</p>
 <ul>
-<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.1.2.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
+<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.2.0.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
 <li><strong>Modular/PWA:</strong> the GitHub build uses <code>index.html</code>, <code>assets/styles.css</code>, separate responsibility-based JavaScript files under <code>assets/js/</code>, <code>manifest.webmanifest</code>, icons, and <code>sw.js</code>. The hosted PWA runs those separate JavaScript files directly; it does not use a monolithic <code>app.js</code>. Shared runtime state is initialized during startup after all ordered scripts have loaded, so cross-file dependencies do not rely on single-file function hoisting. The service worker only intercepts same-origin HTTP/HTTPS requests; browser-extension and other non-web schemes are ignored. The Find/Replace bar reserves its own height above the ruler on desktop. Host the built folder over HTTPS (for example with GitHub Pages or Cloudflare Pages) to make it installable and to allow the service worker to cache the application shell for offline launches.</li>
 </ul>
 <p>The hosted PWA does not upload Notepad documents. Saved documents, folders, images, settings, and drafts continue to use browser-local IndexedDB and localStorage. The hosting server supplies the application files themselves.</p>
@@ -3154,7 +3183,7 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
 </dialog>
 
 <script>
-  const APP_VERSION = '3.1.2';
+  const APP_VERSION = '3.2.0';
   const DB_NAME = 'HTMLNotepadDB';
   const DB_VERSION = 3;
   const FILE_STORE = 'files';
@@ -3364,6 +3393,7 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
     autoLinksToggle: $('autoLinksToggle'),
     autosaveToggle: $('autosaveToggle'),
     lineNumbersToggle: $('lineNumbersToggle'),
+    largeDocToggle: $('largeDocToggle'),
     lineNumberGutter: $('lineNumberGutter'),
     spellContextSection: $('spellContextSection'),
     spellContextWord: $('spellContextWord'),
@@ -3506,6 +3536,7 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
     autoLinks: true,
     autosave: true,
     lineNumbers: false,
+    largeDocMode: false,
     zoom: 100,
     colorHistory: [],
     customDictionary: []
@@ -173504,6 +173535,19 @@ $tec
 
     for (const disk of [...fileList]) {
       try {
+        if (/\.docx$/i.test(disk.name)) {
+          const converted = await importDocxFile(disk);
+          for (const asset of converted.assets) await storePut(ASSET_STORE, asset);
+          const parentId = (disk.webkitRelativePath || '').includes('/')
+            ? await ensureImportFolder(disk.webkitRelativePath.split('/').slice(0, -1).filter(Boolean), folderCache) : null;
+          await addDocument(disk.name.replace(/\.docx$/i, '') || 'Imported', 'rich', converted.html, parentId);
+          const notes = [];
+          if (converted.toc) notes.push(`Table of Contents detected (levels ${converted.toc.levels[0]}–${converted.toc.levels[1]})`);
+          notes.push(`${converted.headings} heading${converted.headings === 1 ? '' : 's'}`);
+          if (converted.skippedImages) notes.push(`${converted.skippedImages} unsupported image${converted.skippedImages === 1 ? '' : 's'} skipped`);
+          toast(`${disk.name}: ${notes.join(', ')}. Use Outline to jump between headings.`);
+          continue;
+        }
         const raw = await disk.text();
         if (/\.json$/i.test(disk.name) || disk.type === 'application/json') {
           const data = JSON.parse(raw);
@@ -173726,6 +173770,384 @@ $tec
     splitOverridePreviousFocus = null;
     if (previousFocus?.isConnected) setTimeout(() => previousFocus.focus(), 0);
     resolve(side === 'left' || side === 'right' ? side : null);
+  }
+
+  // ===========================================================================
+  // WORD (.docx) IMPORT
+  // ===========================================================================
+  // Deliberately small: no libraries, no full Word compatibility. It reads the zip container,
+  // converts body text (paragraphs, bold/italic/underline/strike, links, simple lists, tables,
+  // images) to rich-text HTML, carries over the Heading 1-6 styles (font, size, colour, weight)
+  // defined in the document's styles.xml, and detects a Table of Contents so the Outline panel
+  // can offer the same quick jumping. The static TOC itself (page numbers are meaningless here)
+  // is dropped from the imported text.
+
+  const DOCX_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  const DOCX_REL_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+
+  async function docxReadZip(buffer) {
+    const view = new DataView(buffer), bytes = new Uint8Array(buffer);
+    let eocd = -1;
+    for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 65557); i--) {
+      if (view.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+    }
+    if (eocd < 0) throw new Error('Not a zip file');
+    const count = view.getUint16(eocd + 10, true);
+    let ptr = view.getUint32(eocd + 16, true);
+    const decoder = new TextDecoder();
+    const entries = new Map();
+    for (let n = 0; n < count; n++) {
+      if (view.getUint32(ptr, true) !== 0x02014b50) throw new Error('Corrupt zip directory');
+      const method = view.getUint16(ptr + 10, true);
+      const compressedSize = view.getUint32(ptr + 20, true);
+      const nameLength = view.getUint16(ptr + 28, true), extraLength = view.getUint16(ptr + 30, true), commentLength = view.getUint16(ptr + 32, true);
+      const localOffset = view.getUint32(ptr + 42, true);
+      entries.set(decoder.decode(bytes.subarray(ptr + 46, ptr + 46 + nameLength)), { method, compressedSize, localOffset });
+      ptr += 46 + nameLength + extraLength + commentLength;
+    }
+    const read = async name => {
+      const entry = entries.get(name);
+      if (!entry) return null;
+      const local = entry.localOffset;
+      const start = local + 30 + view.getUint16(local + 26, true) + view.getUint16(local + 28, true);
+      const raw = bytes.subarray(start, start + entry.compressedSize);
+      if (entry.method === 0) return raw;
+      if (entry.method !== 8) throw new Error('Unsupported zip compression');
+      if (typeof DecompressionStream !== 'function') throw new Error('This browser cannot unzip Word files');
+      const stream = new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      return new Uint8Array(await new Response(stream).arrayBuffer());
+    };
+    return { has: name => entries.has(name), read, names: () => [...entries.keys()] };
+  }
+
+  function docxParseXml(bytes) {
+    if (!bytes) return null;
+    const doc = new DOMParser().parseFromString(new TextDecoder().decode(bytes), 'application/xml');
+    return doc.getElementsByTagName('parsererror').length ? null : doc;
+  }
+
+  const wChildren = (node, name) => node ? [...node.children].filter(c => c.localName === name && c.namespaceURI === DOCX_NS) : [];
+  const wFirst = (node, name) => wChildren(node, name)[0] || null;
+  const wAttr = (node, name) => node ? (node.getAttributeNS(DOCX_NS, name) ?? node.getAttribute(`w:${name}`)) : null;
+  const wOn = node => !!node && !['0', 'false', 'off', 'none'].includes((wAttr(node, 'val') || 'true').toLowerCase());
+
+  // styleId -> { name, basedOn, level, font, size, color, bold, italic }
+  function docxReadStyles(doc) {
+    const styles = new Map();
+    if (!doc) return { styles, defaults: {} };
+    const defaultsRpr = wFirst(wFirst(wFirst(doc.documentElement, 'docDefaults'), 'rPrDefault'), 'rPr');
+    const defaults = docxRunProps(defaultsRpr);
+    for (const node of wChildren(doc.documentElement, 'style')) {
+      const id = wAttr(node, 'styleId');
+      if (!id) continue;
+      const pPr = wFirst(node, 'pPr'), outline = wFirst(pPr, 'outlineLvl');
+      styles.set(id, {
+        id, type: wAttr(node, 'type'), name: wAttr(wFirst(node, 'name'), 'val') || id,
+        basedOn: wAttr(wFirst(node, 'basedOn'), 'val'),
+        outline: outline ? Number(wAttr(outline, 'val')) : null,
+        spacingBefore: wAttr(wFirst(pPr, 'spacing'), 'before'), spacingAfter: wAttr(wFirst(pPr, 'spacing'), 'after'),
+        run: docxRunProps(wFirst(node, 'rPr'))
+      });
+    }
+    return { styles, defaults };
+  }
+
+  function docxRunProps(rPr) {
+    const props = {};
+    if (!rPr) return props;
+    const fonts = wFirst(rPr, 'rFonts');
+    if (fonts) props.font = wAttr(fonts, 'ascii') || wAttr(fonts, 'hAnsi') || wAttr(fonts, 'cs');
+    const size = wFirst(rPr, 'sz');
+    if (size) props.size = Number(wAttr(size, 'val')) / 2;           // half-points -> pt
+    const color = wFirst(rPr, 'color');
+    if (color && wAttr(color, 'val') && wAttr(color, 'val') !== 'auto') props.color = wAttr(color, 'val');
+    if (wFirst(rPr, 'b')) props.bold = wOn(wFirst(rPr, 'b'));
+    if (wFirst(rPr, 'i')) props.italic = wOn(wFirst(rPr, 'i'));
+    if (wFirst(rPr, 'u')) props.underline = wOn(wFirst(rPr, 'u'));
+    if (wFirst(rPr, 'strike')) props.strike = wOn(wFirst(rPr, 'strike'));
+    const va = wAttr(wFirst(rPr, 'vertAlign'), 'val');
+    if (va) props.vertAlign = va;
+    const hl = wAttr(wFirst(rPr, 'highlight'), 'val');
+    if (hl && hl !== 'none') props.highlight = hl;
+    return props;
+  }
+
+  // Heading level (1-6) of a paragraph style, following basedOn; null if it is not a heading.
+  function docxStyleHeadingLevel(styles, styleId, guard = 0) {
+    const style = styles.get(styleId);
+    if (!style || guard > 10) return null;
+    const byId = /^heading\s*([1-9])$/i.exec(style.id) || /^heading\s*([1-9])$/i.exec(style.name || '');
+    if (byId) return Math.min(6, Number(byId[1]));
+    if (style.outline !== null && style.outline >= 0 && style.outline <= 5) return style.outline + 1;
+    return style.basedOn ? docxStyleHeadingLevel(styles, style.basedOn, guard + 1) : null;
+  }
+
+  function docxResolveRun(styles, styleId, guard = 0) {
+    const style = styles.get(styleId);
+    if (!style || guard > 10) return {};
+    return { ...(style.basedOn ? docxResolveRun(styles, style.basedOn, guard + 1) : {}), ...style.run };
+  }
+
+  const DOCX_HIGHLIGHTS = { yellow: '#ffff00', green: '#00ff00', cyan: '#00ffff', magenta: '#ff00ff', blue: '#0000ff', red: '#ff0000', darkYellow: '#808000', lightGray: '#d3d3d3', darkGray: '#808080' };
+
+  function docxFontStack(font) {
+    const clean = String(font || '').replace(/["'<>;]/g, '').trim();
+    return clean ? `"${clean}", sans-serif` : '';
+  }
+
+  function docxNumbering(doc) {
+    // numId -> ilvl -> 'ol' | 'ul'
+    const result = new Map();
+    if (!doc) return result;
+    const abstracts = new Map();
+    for (const abs of wChildren(doc.documentElement, 'abstractNum')) {
+      const levels = new Map();
+      for (const lvl of wChildren(abs, 'lvl')) {
+        const fmt = wAttr(wFirst(lvl, 'numFmt'), 'val');
+        levels.set(Number(wAttr(lvl, 'ilvl')), fmt === 'bullet' || fmt === 'none' ? 'ul' : 'ol');
+      }
+      abstracts.set(wAttr(abs, 'abstractNumId'), levels);
+    }
+    for (const num of wChildren(doc.documentElement, 'num')) {
+      const abstract = abstracts.get(wAttr(wFirst(num, 'abstractNumId'), 'val'));
+      if (abstract) result.set(wAttr(num, 'numId'), abstract);
+    }
+    return result;
+  }
+
+  async function importDocxFile(file) {
+    const zip = await docxReadZip(await file.arrayBuffer());
+    const documentXml = docxParseXml(await zip.read('word/document.xml'));
+    if (!documentXml) throw new Error('word/document.xml is missing');
+    const { styles, defaults } = docxReadStyles(docxParseXml(await zip.read('word/styles.xml')));
+    const numbering = docxNumbering(docxParseXml(await zip.read('word/numbering.xml')));
+
+    const rels = new Map();
+    const relsXml = docxParseXml(await zip.read('word/_rels/document.xml.rels'));
+    if (relsXml) for (const rel of relsXml.getElementsByTagName('Relationship')) {
+      rels.set(rel.getAttribute('Id'), { target: rel.getAttribute('Target') || '', external: rel.getAttribute('TargetMode') === 'External' });
+    }
+
+    const assets = [];
+    const state = { toc: null, headings: 0, images: 0, skippedImages: 0 };
+    const imageCache = new Map();
+
+    const imageHtml = async blip => {
+      const rid = blip.getAttributeNS(DOCX_REL_NS, 'embed') || blip.getAttribute('r:embed');
+      const rel = rels.get(rid);
+      if (!rel || rel.external) return null;
+      const path = rel.target.startsWith('/') ? rel.target.slice(1) : `word/${rel.target}`.replace(/\/\.\//g, '/');
+      const mime = /\.png$/i.test(path) ? 'image/png' : /\.jpe?g$/i.test(path) ? 'image/jpeg' : /\.gif$/i.test(path) ? 'image/gif' : /\.webp$/i.test(path) ? 'image/webp' : /\.svg$/i.test(path) ? null : null;
+      if (!mime || !zip.has(path)) { state.skippedImages++; return null; }
+      if (!imageCache.has(path)) {
+        const data = await zip.read(path);
+        const blob = new Blob([data], { type: mime });
+        const id = uid();
+        assets.push({ id, dataUrl: await fileToDataUrl(blob), mime, size: blob.size, name: path.split('/').pop(), createdAt: new Date().toISOString() });
+        imageCache.set(path, id);
+      }
+      state.images++;
+      return imageCache.get(path);
+    };
+
+    const runToNodes = async (run, linkHref) => {
+      const nodes = [];
+      const rPr = wFirst(run, 'rPr');
+      const rStyle = wAttr(wFirst(rPr, 'rStyle'), 'val');
+      const props = { ...docxResolveRun(styles, rStyle), ...docxRunProps(rPr) };
+      let text = '';
+      const flush = () => {
+        if (!text) return;
+        let node = document.createTextNode(text);
+        const wrap = tag => { const el2 = document.createElement(tag); el2.appendChild(node); node = el2; };
+        if (props.bold) wrap('b');
+        if (props.italic) wrap('i');
+        if (props.underline && !linkHref) wrap('u');
+        if (props.strike) wrap('s');
+        if (props.vertAlign === 'superscript') wrap('sup'); else if (props.vertAlign === 'subscript') wrap('sub');
+        const css = [];
+        if (props.color && /^[0-9a-f]{6}$/i.test(props.color)) css.push(`color:#${props.color}`);
+        if (props.highlight && DOCX_HIGHLIGHTS[props.highlight]) css.push(`background-color:${DOCX_HIGHLIGHTS[props.highlight]}`);
+        if (css.length) { const span = document.createElement('span'); span.style.cssText = css.join(';'); span.appendChild(node); node = span; }
+        nodes.push(node);
+        text = '';
+      };
+      for (const child of run.children) {
+        const name = child.localName;
+        if (name === 't') text += child.textContent;
+        else if (name === 'tab') text += '    ';
+        else if (name === 'noBreakHyphen') text += '‑';
+        else if (name === 'br' || name === 'cr') { flush(); nodes.push(document.createElement('br')); }
+        else if (name === 'drawing') {
+          flush();
+          const blip = child.getElementsByTagNameNS('*', 'blip')[0];
+          const id = blip ? await imageHtml(blip) : null;
+          if (id) {
+            const img = document.createElement('img');
+            img.dataset.assetId = id; img.alt = 'Image'; img.dataset.align = 'left';
+            const extent = child.getElementsByTagNameNS('*', 'extent')[0];
+            const widthPx = extent ? Math.round(Number(extent.getAttribute('cx')) / 9525) : 0;
+            img.style.cssText = `width:${widthPx > 0 ? Math.min(widthPx, 640) + 'px' : '50%'};max-width:100%;height:auto`;
+            nodes.push(img);
+          } else if (child.getElementsByTagNameNS('*', 'blip').length) state.skippedImages++;
+        }
+      }
+      flush();
+      return nodes;
+    };
+
+    const inlineNodes = async paragraph => {
+      const out = [];
+      const walk = async (container, href) => {
+        for (const child of container.children) {
+          if (child.namespaceURI !== DOCX_NS) continue;
+          if (child.localName === 'r') {
+            const nodes = await runToNodes(child, href);
+            if (href) {
+              const a = document.createElement('a'); a.href = href; a.target = '_blank'; a.rel = 'noopener noreferrer';
+              nodes.forEach(n => a.appendChild(n)); if (a.childNodes.length) out.push(a);
+            } else out.push(...nodes);
+          } else if (child.localName === 'hyperlink') {
+            const rel = rels.get(child.getAttributeNS(DOCX_REL_NS, 'id') || child.getAttribute('r:id'));
+            const safe = rel?.external && /^(https?:|mailto:)/i.test(rel.target) ? rel.target : null;
+            await walk(child, safe);
+          } else if (['ins', 'smartTag', 'sdt', 'sdtContent', 'fldSimple'].includes(child.localName)) await walk(child, href);
+        }
+      };
+      await walk(paragraph, null);
+      return out;
+    };
+
+    const paragraphInfo = paragraph => {
+      const pPr = wFirst(paragraph, 'pPr');
+      const styleId = wAttr(wFirst(pPr, 'pStyle'), 'val');
+      const style = styles.get(styleId);
+      const direct = wFirst(pPr, 'outlineLvl');
+      let level = docxStyleHeadingLevel(styles, styleId);
+      if (direct && Number(wAttr(direct, 'val')) <= 5) level = Number(wAttr(direct, 'val')) + 1;
+      const numPr = wFirst(pPr, 'numPr');
+      const numId = numPr ? wAttr(wFirst(numPr, 'numId'), 'val') : null;
+      return {
+        styleId, style, level,
+        isToc: /^toc(\d+|heading)?$/i.test(styleId || '') || /^toc\s*(\d+|heading)$/i.test(style?.name || ''),
+        numId: numId && numId !== '0' ? numId : null,
+        ilvl: numPr ? Number(wAttr(wFirst(numPr, 'ilvl'), 'val') || 0) : 0,
+        align: wAttr(wFirst(pPr, 'jc'), 'val')
+      };
+    };
+
+    const noteTocField = paragraph => {
+      for (const instr of paragraph.getElementsByTagNameNS(DOCX_NS, 'instrText')) {
+        const match = /^\s*TOC\b(.*)$/i.exec(instr.textContent || '');
+        if (match) {
+          const range = /\\o\s+"?(\d)\s*-\s*(\d)/i.exec(match[1]);
+          state.toc = state.toc || { levels: range ? [Number(range[1]), Number(range[2])] : [1, 3] };
+          if (range) state.toc.levels = [Number(range[1]), Number(range[2])];
+        }
+      }
+    };
+
+    const headingStyleCss = (level, styleId) => {
+      const merged = { ...defaults };
+      // Merge the style chain (basedOn first). A custom heading style (e.g. "Chapter Title" based
+      // on Heading 1) uses its own chain; otherwise fall back to the built-in Heading N style.
+      const chain = [];
+      let id = styles.has(styleId) && docxStyleHeadingLevel(styles, styleId) === level
+        ? styleId
+        : [...styles.values()].find(s => docxStyleHeadingLevel(styles, s.id) === level && /^heading/i.test(s.name || s.id))?.id;
+      for (let guard = 0; id && guard < 10; guard++) { chain.unshift(id); id = styles.get(id)?.basedOn; }
+      chain.forEach(sid => Object.assign(merged, styles.get(sid)?.run || {}));
+      const css = [];
+      const stack = docxFontStack(merged.font);
+      if (stack) css.push(`font-family:${stack}`);
+      if (merged.size) css.push(`font-size:${merged.size}pt`);
+      if (merged.color && /^[0-9a-f]{6}$/i.test(merged.color)) css.push(`color:#${merged.color}`);
+      css.push(`font-weight:${merged.bold === false ? 'normal' : 'bold'}`);
+      if (merged.italic) css.push('font-style:italic');
+      return css.join(';');
+    };
+    const headingCssCache = new Map();
+    const headingCss = (level, styleId) => {
+      const key = `${level}|${styleId}`;
+      if (!headingCssCache.has(key)) headingCssCache.set(key, headingStyleCss(level, styleId));
+      return headingCssCache.get(key);
+    };
+
+    const root = document.createElement('div');
+    let listStack = []; // [{ tag, el }]
+
+    const closeLists = () => { listStack = []; };
+    const appendBlock = node => { closeLists(); root.appendChild(node); };
+
+    const paragraphToElement = async (paragraph, info) => {
+      const inline = await inlineNodes(paragraph);
+      const isHeading = info.level && inline.some(n => (n.textContent || '').trim());
+      const block = document.createElement(isHeading ? `h${info.level}` : 'div');
+      if (isHeading) { block.style.cssText = headingCss(info.level, info.styleId); state.headings++; }
+      if (['center', 'right'].includes(info.align)) block.style.textAlign = info.align;
+      else if (info.align === 'both') block.style.textAlign = 'justify';
+      inline.forEach(n => block.appendChild(n));
+      if (!block.childNodes.length) block.appendChild(document.createElement('br'));
+      return block;
+    };
+
+    const convertBlock = async (node, target, inTable = false) => {
+      if (node.namespaceURI !== DOCX_NS) return;
+      if (node.localName === 'sdt') {
+        const gallery = node.getElementsByTagNameNS(DOCX_NS, 'docPartGallery')[0];
+        const isToc = /table of contents|toc/i.test(wAttr(gallery, 'val') || '');
+        if (isToc && !inTable) { state.toc = state.toc || { levels: [1, 3] }; return; }
+        const content = wFirst(node, 'sdtContent');
+        if (content) for (const child of content.children) await convertBlock(child, target, inTable);
+        return;
+      }
+      if (node.localName === 'p') {
+        noteTocField(node);
+        const info = paragraphInfo(node);
+        if (info.isToc) { state.toc = state.toc || { levels: [1, 3] }; return; }
+        const element = await paragraphToElement(node, info);
+        if (info.numId && !info.level && !inTable) {
+          const kind = numbering.get(info.numId)?.get(info.ilvl) || 'ul';
+          while (listStack.length > info.ilvl + 1) listStack.pop();
+          while (listStack.length < info.ilvl + 1 || listStack[listStack.length - 1].tag !== kind) {
+            if (listStack.length && listStack.length === info.ilvl + 1 && listStack[listStack.length - 1].tag !== kind) listStack.pop();
+            const list = document.createElement(kind);
+            const parentItem = listStack.length ? listStack[listStack.length - 1].el.lastElementChild : null;
+            (parentItem || (listStack.length ? listStack[listStack.length - 1].el : root)).appendChild(list);
+            listStack.push({ tag: kind, el: list });
+          }
+          const item = document.createElement('li');
+          while (element.firstChild) item.appendChild(element.firstChild);
+          listStack[listStack.length - 1].el.appendChild(item);
+          return;
+        }
+        if (inTable) target.appendChild(element); else appendBlock(element);
+        return;
+      }
+      if (node.localName === 'tbl') {
+        const table = document.createElement('table');
+        table.style.cssText = 'border-collapse:collapse;max-width:100%';
+        for (const row of wChildren(node, 'tr')) {
+          const tr = document.createElement('tr');
+          for (const cell of wChildren(row, 'tc')) {
+            const td = document.createElement('td');
+            td.style.cssText = 'border:1px solid #999;padding:4px 8px;vertical-align:top';
+            const span = Number(wAttr(wFirst(wFirst(cell, 'tcPr'), 'gridSpan'), 'val') || 1);
+            if (span > 1) td.colSpan = span;
+            for (const child of cell.children) await convertBlock(child, td, true);
+            if (!td.childNodes.length) td.appendChild(document.createElement('br'));
+            tr.appendChild(td);
+          }
+          table.appendChild(tr);
+        }
+        if (inTable) target.appendChild(table); else appendBlock(table);
+      }
+    };
+
+    const body = wFirst(documentXml.documentElement, 'body');
+    for (const child of body ? body.children : []) await convertBlock(child, root);
+
+    return { html: root.innerHTML, assets, toc: state.toc, headings: state.headings, images: state.images, skippedImages: state.skippedImages };
   }
 
   // ===========================================================================
@@ -175148,7 +175570,7 @@ $tec
   function persistUnsavedDrafts() {
     captureEditorIntoActive();
     const drafts = tabs
-      .filter(t => !t.fileId)
+      .filter(t => !t.fileId && !isLargeDocumentTab(t))
       .map(t => ({
         draftId: t.tabId,
         name: t.name,
@@ -176441,6 +176863,14 @@ $tec
   // DIRTY STATE, RECOVERY & SETTINGS
   // ===========================================================================
 
+  // Optional (Settings, off by default): very large documents are kept out of browser storage
+  // (draft/recovery copies in localStorage/IndexedDB) and are not autosaved; they are only
+  // written when the user saves.
+  const LARGE_DOC_CHARS = 2000000;
+  function isLargeDocumentTab(tab) {
+    return !!settings?.largeDocMode && (tab?.content || '').length > LARGE_DOC_CHARS;
+  }
+
   function markDirtyFromEditor() {
     const tab = currentTab();
     if (!tab) return;
@@ -176450,6 +176880,10 @@ $tec
     tab.updatedAt = new Date().toISOString();
     renderTabs();
     updateCounts();
+    if (isLargeDocumentTab(tab) && !tab.largeDocNoticed) {
+      tab.largeDocNoticed = true;
+      toast('Large-document mode: autosave and recovery copies are off for this document. Save with Ctrl+S.');
+    }
 
     if (!tab.fileId) persistUnsavedDraftsSoon();
     persistSessionSoon();
@@ -176462,7 +176896,7 @@ $tec
 
     captureEditorIntoActive();
     const tab = currentTab();
-    if (!tab) {
+    if (!tab || isLargeDocumentTab(tab)) {
       writeJsonStorage(LS_RECOVERY, null);
       return;
     }
@@ -176522,7 +176956,7 @@ $tec
       // Recovery always tracks the active editor. Autosave is a separate decision and only
       // writes a dirty, already-saved document back to IndexedDB.
       saveRecoverySnapshot();
-      if (tab.dirty && settings.autosave && tab.fileId) await saveCurrent(false);
+      if (tab.dirty && settings.autosave && tab.fileId && !isLargeDocumentTab(tab)) await saveCurrent(false);
     }, 1500);
   }
 
@@ -176533,6 +176967,7 @@ $tec
     el.autoLinksToggle.checked = settings.autoLinks;
     el.autosaveToggle.checked = settings.autosave;
     el.lineNumbersToggle.checked = settings.lineNumbers;
+    el.largeDocToggle.checked = !!settings.largeDocMode;
     el.settingsDialog.showModal();
   }
 
@@ -176546,6 +176981,7 @@ $tec
       autoLinks: el.autoLinksToggle.checked,
       autosave: el.autosaveToggle.checked,
       lineNumbers: el.lineNumbersToggle.checked,
+      largeDocMode: el.largeDocToggle.checked,
       colorHistory: Array.isArray(settings.colorHistory) ? settings.colorHistory.slice(0, 10) : [],
       customDictionary: Array.isArray(settings.customDictionary) ? settings.customDictionary : []
     };
@@ -176995,6 +177431,142 @@ $tec
     const next=stops.length?stops[0]:Math.ceil((current+1)/48)*48;
     const span=document.createElement('span');span.dataset.tab='1';span.style.display='inline-block';span.style.width=`${Math.max(12,next-current)}px`;span.innerHTML='&nbsp;';
     range.deleteContents();range.insertNode(span);range.setStartAfter(span);range.collapse(true);sel.removeAllRanges();sel.addRange(range);markDirtyFromEditor();
+  }
+
+  // ===========================================================================
+  // OUTLINE PANEL (jump between headings)
+  // ===========================================================================
+  // Lists the headings of the active document (Heading 1-6 in rich text, # headings in
+  // Markdown) like a Word navigation pane / table of contents. Clicking a row jumps there.
+
+  const LS_OUTLINE_LEVELS = 'htmlNotepad.outlineLevels';
+  let outlinePanel = null, outlineSignature = '', outlineTimer = null, outlineMaxLevel = 2;
+
+  function outlineHeadings() {
+    const tab = currentTab();
+    if (!tab) return [];
+    if (isSourceTab(tab)) {
+      if (!isMarkdownTab(tab)) return [];
+      const headings = [];
+      let offset = 0, fenced = false;
+      for (const line of el.markdownSource.value.split('\n')) {
+        if (/^```/.test(line)) fenced = !fenced;
+        const match = !fenced && /^(#{1,6})\s+(.+?)\s*#*\s*$/.exec(line);
+        if (match) headings.push({ level: match[1].length, text: match[2], offset, index: headings.length });
+        offset += line.length + 1;
+      }
+      return headings;
+    }
+    return [...el.editor.querySelectorAll('h1,h2,h3,h4,h5,h6')]
+      .map((node, index) => ({ level: Number(node.tagName[1]), text: (node.textContent || '').replace(/\s+/g, ' ').trim(), node, index }))
+      .filter(h => h.text);
+  }
+
+  function outlineJump(heading) {
+    if (heading.node) {
+      heading.node.scrollIntoView({ block: 'start' });
+      const range = document.createRange();
+      range.setStart(heading.node, 0); range.collapse(true);
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+      el.editor.focus({ preventScroll: true });
+    } else if (currentTab()?.markdownMode === 'preview') {
+      const target = el.markdownPreview.querySelectorAll('h1,h2,h3,h4,h5,h6')[heading.index];
+      target?.scrollIntoView({ block: 'start' });
+    } else {
+      const area = el.markdownSource;
+      area.focus({ preventScroll: true });
+      area.setSelectionRange(heading.offset, heading.offset);
+      area.scrollTop = Math.max(0, textareaOffsetTop(area, heading.offset) - 12);
+    }
+    if (window.matchMedia?.('(max-width: 760px)').matches) closeOutline();
+  }
+
+  function renderOutline(force = false) {
+    if (!outlinePanel || outlinePanel.hidden) return;
+    const tab = currentTab();
+    const headings = outlineHeadings();
+    const signature = `${tab?.tabId}|${outlineMaxLevel}|${tab?.markdownMode}|` + headings.map(h => `${h.level}:${h.text}`).join('\n');
+    if (!force && signature === outlineSignature) return;
+    outlineSignature = signature;
+    const list = outlinePanel.querySelector('.outline-list');
+    list.textContent = '';
+    const shown = headings.filter(h => h.level <= outlineMaxLevel);
+    if (!shown.length) {
+      const empty = document.createElement('div');
+      empty.className = 'outline-empty';
+      empty.textContent = !tab ? 'No document open.'
+        : (headings.length ? 'No headings at the selected levels.' : 'No headings found. Use Heading 1/2 styles (or # in Markdown) to build an outline.');
+      list.appendChild(empty);
+      return;
+    }
+    const base = Math.min(...shown.map(h => h.level));
+    for (const heading of shown) {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = `outline-item level-${heading.level}`;
+      row.style.paddingLeft = `${10 + (heading.level - base) * 16}px`;
+      row.textContent = heading.text;
+      row.title = heading.text;
+      row.addEventListener('click', () => outlineJump(heading));
+      list.appendChild(row);
+    }
+  }
+
+  function openOutline() {
+    outlinePanel.hidden = false;
+    el.outlineBtn.setAttribute('aria-pressed', 'true');
+    renderOutline(true);
+    clearInterval(outlineTimer);
+    outlineTimer = setInterval(() => renderOutline(), 700);
+  }
+
+  function closeOutline() {
+    if (!outlinePanel) return;
+    outlinePanel.hidden = true;
+    el.outlineBtn.setAttribute('aria-pressed', 'false');
+    clearInterval(outlineTimer);
+  }
+
+  function toggleOutline() {
+    if (outlinePanel.hidden) openOutline(); else closeOutline();
+  }
+
+  function setupOutlinePanel() {
+    el.outlineBtn = document.getElementById('outlineBtn');
+    try { outlineMaxLevel = Math.min(6, Math.max(1, Number(localStorage.getItem(LS_OUTLINE_LEVELS)) || 2)); } catch {}
+    outlinePanel = document.createElement('aside');
+    outlinePanel.id = 'outlinePanel';
+    outlinePanel.className = 'outline-panel';
+    outlinePanel.hidden = true;
+    outlinePanel.setAttribute('aria-label', 'Document outline');
+    outlinePanel.innerHTML = `
+      <div class="outline-head">
+        <strong>Outline</strong>
+        <select class="outline-levels" aria-label="Heading levels shown">
+          <option value="1">Heading 1</option>
+          <option value="2">Headings 1–2</option>
+          <option value="3">Headings 1–3</option>
+          <option value="6">All headings</option>
+        </select>
+        <button type="button" class="outline-close" aria-label="Close outline" title="Close">×</button>
+      </div>
+      <div class="outline-list" role="list"></div>`;
+    document.body.appendChild(outlinePanel);
+    const select = outlinePanel.querySelector('.outline-levels');
+    select.value = [1, 2, 3, 6].includes(outlineMaxLevel) ? String(outlineMaxLevel) : '2';
+    select.addEventListener('change', () => {
+      outlineMaxLevel = Number(select.value);
+      try { localStorage.setItem(LS_OUTLINE_LEVELS, String(outlineMaxLevel)); } catch {}
+      renderOutline(true);
+    });
+    outlinePanel.querySelector('.outline-close').addEventListener('click', closeOutline);
+    el.outlineBtn.addEventListener('click', toggleOutline);
+    document.addEventListener('keydown', event => {
+      if ((event.ctrlKey || event.metaKey) && event.altKey && event.key.toLowerCase() === 'o') {
+        event.preventDefault();
+        toggleOutline();
+      }
+    });
   }
 
   // ===========================================================================
@@ -177591,7 +178163,7 @@ $tec
     $('collapseAllFoldersBtn').addEventListener('click', collapseAllFolders);
     $('importFolderBtn').addEventListener('click', () => { closeFilesTreeMenu(); el.importFolderInput.click(); });
     el.importFolderInput.addEventListener('change', async () => {
-      const selectedFiles = [...(el.importFolderInput.files || [])].filter(f => /\.(txt|html?|md|markdown)$/i.test(f.name));
+      const selectedFiles = [...(el.importFolderInput.files || [])].filter(f => /\.(txt|html?|md|markdown|docx)$/i.test(f.name));
       if (selectedFiles.length) await importDocuments(selectedFiles);
       else if (el.importFolderInput.files?.length) toast('No .txt, .html or .md files found in that folder.');
       el.importFolderInput.value = '';
@@ -177952,6 +178524,7 @@ $tec
     // ---- Zoom and find/replace --------------------------------------------
     el.zoomOutBtn.addEventListener('click', () => changeZoom(-10));
     el.zoomInBtn.addEventListener('click', () => changeZoom(10));
+    setupOutlinePanel();
     el.findInput.addEventListener('input', () => refreshFindMatches({ fromTyping: true }));
     el.findCaseToggle.addEventListener('change', refreshFindMatches);
     el.findPrevBtn.addEventListener('click', () => stepFind(-1));

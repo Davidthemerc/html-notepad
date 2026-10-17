@@ -1,6 +1,6 @@
-# HTML Notepad v3.1.2
+# HTML Notepad v3.2.0
 
-HTML Notepad is an offline-first browser notepad with an IndexedDB-backed virtual filesystem. Version 3.1.2 provides both a modular hosted/PWA build and the traditional single-file standalone build.
+HTML Notepad is an offline-first browser notepad with an IndexedDB-backed virtual filesystem. Version 3.2.0 provides both a modular hosted/PWA build and the traditional single-file standalone build.
 
 ## Repository layout
 
@@ -49,3 +49,11 @@ The standalone edition has no hosting requirement and remains a single self-cont
 Keep `package.json` out of the repository root: Cloudflare then runs `bun install` and `wrangler deploy` uploads
 `node_modules` (Workers assets are limited to 25 MiB per file). Test dependencies live in `tests/`, and
 `.assetsignore` keeps tooling files out of the deployed site. `wrangler.jsonc` serves the repository root as static assets.
+
+## Word (.docx) import and Outline
+
+Import reads `.docx` in the browser with no libraries (`assets/js/09a-docx-import.js`): text formatting,
+links, simple lists, tables, images, Heading 1–6 styles (font/size/colour), and Table of Contents detection.
+The Outline panel (`assets/js/18a-outline.js`, Ctrl+Alt+O) lists headings for jumping around a document.
+Settings → *Large-document mode* (off by default) keeps documents over about 2 MB out of localStorage/IndexedDB
+recovery copies and autosave; save them manually.

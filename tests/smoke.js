@@ -11,6 +11,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
+const os = require('os');
 const { chromium } = require('playwright');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -55,6 +56,7 @@ async function suite(browser, label, url, { mobile = false } = {}) {
   const newDoc = async kind => {
     await click('newBtn'); await page.click(`#newDocumentDialog button:has-text("${kind}")`); await page.waitForTimeout(200);
   };
+  const setOutline = async open => { if (await page.evaluate(() => outlinePanel.hidden) === open) await click('outlineBtn'); await page.waitForTimeout(900); };
   const render = (src, opts) => page.evaluate(([s, o]) => renderMarkdown(s, o), [src, opts]);
 
   await page.goto(url); await page.waitForTimeout(1200);
@@ -140,6 +142,35 @@ async function suite(browser, label, url, { mobile = false } = {}) {
     eq(await page.evaluate(() => document.getElementById('markdownSource').value), '- [x] one\n- [x] two\n');
   });
 
+  await test('Word .docx import: heading styles, Table of Contents detection, outline jumping', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'notepad-docx-'));
+    const docx = path.join(dir, 'sample.docx');
+    execFileSync('python3', [path.join(__dirname, 'make_sample_docx.py'), docx]);
+    await page.setInputFiles('#importDocInput', docx); await page.waitForTimeout(1500);
+    ok(/Table of Contents detected/.test(await page.evaluate(() => document.getElementById('toast').textContent)), 'TOC detected');
+    const headings = await page.evaluate(() => [...document.querySelectorAll('#editor h1, #editor h2')].map(h => [h.tagName, h.textContent, h.style.fontFamily, h.style.fontSize]));
+    eq(headings.map(h => h.slice(0, 2)), [['H1', 'Introduction'], ['H2', 'Background'], ['H1', 'Methods']]);
+    ok(headings[0][2].includes('Cambria') && headings[0][3] === '16pt', 'Heading 1 font/size carried over');
+    ok(headings[1][2].includes('Georgia') && headings[1][3] === '13pt', 'Heading 2 font/size carried over');
+    ok(!(await page.evaluate(() => document.getElementById('editor').innerText)).includes('\t1'), 'static TOC page numbers dropped');
+    eq(await page.evaluate(() => ({ lists: document.querySelectorAll('#editor ul, #editor ol').length, tables: document.querySelectorAll('#editor table').length, imgs: document.querySelectorAll('#editor img[data-asset-id]').length, link: document.querySelector('#editor a')?.href })),
+       { lists: 3, tables: 1, imgs: 1, link: 'https://example.com/a_b' });
+    await setOutline(true);
+    eq(await page.evaluate(() => [...document.querySelectorAll('.outline-item')].map(x => x.textContent)), ['Introduction', 'Background', 'Methods']);
+    await page.evaluate(() => { const pad = document.createElement('div'); pad.style.height = '2500px'; document.querySelector('#editor h2').after(pad); });
+    await page.click('.outline-item >> nth=2'); await page.waitForTimeout(200);
+    const top = await page.evaluate(() => Math.round(document.querySelectorAll('#editor h1')[1].getBoundingClientRect().top));
+    ok(top >= 0 && top < 780, `Methods heading scrolled into view (top=${top})`);
+    await setOutline(false);
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+  await test('Markdown outline lists # headings', async () => {
+    await newDoc('Markdown');
+    await page.fill('#markdownSource', '# One\n\ntext\n\n## Two\n\n```\n# not a heading\n```\n'); await page.dispatchEvent('#markdownSource', 'input');
+    await setOutline(true);
+    eq(await page.evaluate(() => [...document.querySelectorAll('.outline-item')].map(x => x.textContent)), ['One', 'Two']);
+    await setOutline(false);
+  });
   await test('Markdown: footnotes and list-item continuation lines', async () => {
     const html = await render('Hi[^a] there.\n\n[^a]: The note\n\n- one\n  more\n- two');
     ok(html.includes('<sup class="fnref">1</sup>') && html.includes('<section class="footnotes">') && html.includes('The note'), 'footnote');
@@ -193,6 +224,25 @@ async function suite(browser, label, url, { mobile = false } = {}) {
     });
     await test('no horizontal overflow at phone width', async () => {
       eq(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    });
+  }
+
+  if (!mobile) {
+    await test('large-document mode (opt-in) keeps big unsaved drafts out of browser storage', async () => {
+      const big = () => page.evaluate(() => {
+        const l = 'The quick brown fox jumps over the lazy dog. 0123456789\n';
+        const el2 = document.getElementById('markdownSource'); el2.value = l.repeat(Math.floor(2.4e6 / l.length));
+        el2.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      await page.evaluate(() => { settings.largeDocMode = true; });
+      await newDoc('Plain'); await big(); await page.waitForTimeout(900);
+      const stored = () => page.evaluate(() => ({ size: (localStorage.getItem('htmlNotepad.unsavedDrafts')?.length || 0) + (overflowCache.get('htmlNotepad.unsavedDrafts')?.length || 0) }));
+      const withMode = await stored();
+      ok(withMode.size < 100000, `the 2.4 MB draft is not stored while the mode is on (stored ${withMode.size} chars)`);
+      await page.evaluate(() => { settings.largeDocMode = false; });
+      await page.evaluate(() => document.getElementById('markdownSource').dispatchEvent(new Event('input', { bubbles: true }))); await page.waitForTimeout(900);
+      const without = await stored();
+      ok(without.size > 2e6, 'stored when the mode is off (default)');
     });
   }
 

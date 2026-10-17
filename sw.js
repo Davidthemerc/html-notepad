@@ -1,4 +1,4 @@
-const CACHE_NAME = 'html-notepad-v3.1.2';
+const CACHE_NAME = 'html-notepad-v3.2.0';
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -14,6 +14,7 @@ const APP_SHELL = [
   "./assets/js/07-tabs-session-split.js",
   "./assets/js/08-markdown.js",
   "./assets/js/09-import-export.js",
+  "./assets/js/09a-docx-import.js",
   "./assets/js/10-protection.js",
   "./assets/js/11-trash.js",
   "./assets/js/12-backup-restore.js",
@@ -23,6 +24,7 @@ const APP_SHELL = [
   "./assets/js/16-context-clipboard-print.js",
   "./assets/js/17-dirty-recovery-settings.js",
   "./assets/js/18-find-replace.js",
+  "./assets/js/18a-outline.js",
   "./assets/js/19-tab-key.js",
   "./assets/js/20-editor-events.js",
   "./assets/js/21-help-manual.js",

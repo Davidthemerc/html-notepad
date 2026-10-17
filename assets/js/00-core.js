@@ -1,4 +1,4 @@
-  const APP_VERSION = '3.1.2';
+  const APP_VERSION = '3.2.0';
   const DB_NAME = 'HTMLNotepadDB';
   const DB_VERSION = 3;
   const FILE_STORE = 'files';
@@ -208,6 +208,7 @@
     autoLinksToggle: $('autoLinksToggle'),
     autosaveToggle: $('autosaveToggle'),
     lineNumbersToggle: $('lineNumbersToggle'),
+    largeDocToggle: $('largeDocToggle'),
     lineNumberGutter: $('lineNumberGutter'),
     spellContextSection: $('spellContextSection'),
     spellContextWord: $('spellContextWord'),
@@ -350,6 +351,7 @@
     autoLinks: true,
     autosave: true,
     lineNumbers: false,
+    largeDocMode: false,
     zoom: 100,
     colorHistory: [],
     customDictionary: []
