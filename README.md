@@ -1,6 +1,6 @@
-# HTML Notepad v3.2.0
+# HTML Notepad v3.3.0
 
-HTML Notepad is an offline-first browser notepad with an IndexedDB-backed virtual filesystem. Version 3.2.0 provides both a modular hosted/PWA build and the traditional single-file standalone build.
+HTML Notepad is an offline-first browser notepad with an IndexedDB-backed virtual filesystem. Version 3.3.0 provides both a modular hosted/PWA build and the traditional single-file standalone build.
 
 ## Repository layout
 
@@ -54,6 +54,7 @@ Keep `package.json` out of the repository root: Cloudflare then runs `bun instal
 
 Import reads `.docx` in the browser with no libraries (`assets/js/09a-docx-import.js`): text formatting,
 links, simple lists, tables, images, Heading 1–6 styles (font/size/colour), and Table of Contents detection.
+Export (`assets/js/09b-docx-export.js`, Files context menu → Export Word) writes headings as real Word styles plus formatting, links, lists, tables and images; output was validated with python-docx and LibreOffice.
 The Outline panel (`assets/js/18a-outline.js`, Ctrl+Alt+O) lists headings for jumping around a document.
 Settings → *Large-document mode* (off by default) keeps documents over about 2 MB out of localStorage/IndexedDB
 recovery copies and autosave; save them manually.

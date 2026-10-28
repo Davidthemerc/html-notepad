@@ -313,6 +313,7 @@
 
     const locked = protectedFile && !unlocked;
     document.getElementById('contextProtectionExportSep').hidden = multi || isFolder || locked;
+    document.getElementById('contextExportDocxBtn').hidden=multi || isFolder || locked;
     document.getElementById('contextExportRtfBtn').hidden=multi || isFolder || locked || effectiveType!=='rich';
     document.getElementById('contextExportTxtBtn').hidden=multi || isFolder || locked;
     document.getElementById('contextExportHtmlBtn').hidden=multi || isFolder || locked || effectiveType==='plain';

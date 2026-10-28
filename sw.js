@@ -1,4 +1,4 @@
-const CACHE_NAME = 'html-notepad-v3.2.0';
+const CACHE_NAME = 'html-notepad-v3.3.0';
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -15,6 +15,7 @@ const APP_SHELL = [
   "./assets/js/08-markdown.js",
   "./assets/js/09-import-export.js",
   "./assets/js/09a-docx-import.js",
+  "./assets/js/09b-docx-export.js",
   "./assets/js/10-protection.js",
   "./assets/js/11-trash.js",
   "./assets/js/12-backup-restore.js",

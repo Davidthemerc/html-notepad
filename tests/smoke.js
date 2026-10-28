@@ -164,6 +164,33 @@ async function suite(browser, label, url, { mobile = false } = {}) {
     await setOutline(false);
     fs.rmSync(dir, { recursive: true, force: true });
   });
+  await test('Word .docx export round-trips through the importer (headings, lists, table, link)', async () => {
+    const result = await page.evaluate(async () => {
+      const html = '<h1 style="font-family: Cambria; font-size: 16pt; color: #365f91">Title</h1><div><b>bold</b> <a href="https://example.com/a_b">link</a></div><h2>Sub</h2><ul><li>one<ul><li>nested</li></ul></li></ul><table><tr><td>A</td><td>B</td></tr></table>';
+      const blob = await htmlToDocx(html);
+      const out = await importDocxFile(new File([blob], 'round.docx'));
+      const root = document.createElement('div'); root.innerHTML = out.html;
+      return {
+        zip: new Uint8Array(await blob.arrayBuffer()).slice(0, 2).join(','),
+        headings: [...root.querySelectorAll('h1,h2')].map(h => [h.tagName, h.textContent]),
+        font: root.querySelector('h1 span')?.style.fontFamily, size: root.querySelector('h1 span')?.style.fontSize,
+        nested: !!root.querySelector('ul ul'), cells: [...root.querySelectorAll('td')].map(td => td.textContent),
+        link: root.querySelector('a')?.getAttribute('href')
+      };
+    });
+    eq(result.zip, '80,75'); eq(result.headings, [['H1', 'Title'], ['H2', 'Sub']]);
+    ok(result.font.includes('Cambria') && result.size === '16pt', 'heading font/size survive export + import');
+    eq([result.nested, result.cells, result.link], [true, ['A', 'B'], 'https://example.com/a_b']);
+  });
+  await test('Export Word (.docx) from the Files context menu downloads a docx for a Markdown file', async () => {
+    await newDoc('Markdown'); await page.fill('#markdownSource', '# Hello\n\n- a\n- b\n'); await page.dispatchEvent('#markdownSource', 'input');
+    await saveAs('ExportMe');
+    await page.evaluate(() => { selectedFileId = files.find(f => f.name === 'ExportMe').id; selectedFileIds = new Set([selectedFileId]); });
+    const [download] = await Promise.all([page.waitForEvent('download'), page.evaluate(() => exportSelectedDocx())]);
+    eq(download.suggestedFilename(), 'ExportMe.docx');
+    const bytes = fs.readFileSync(await download.path());
+    eq([bytes[0], bytes[1]], [80, 75]);
+  });
   await test('Markdown outline lists # headings', async () => {
     await newDoc('Markdown');
     await page.fill('#markdownSource', '# One\n\ntext\n\n## Two\n\n```\n# not a heading\n```\n'); await page.dispatchEvent('#markdownSource', 'input');
@@ -201,9 +228,12 @@ async function suite(browser, label, url, { mobile = false } = {}) {
         const el = document.getElementById('markdownSource'); el.value = l.repeat(Math.floor(6e6 / l.length));
         el.dispatchEvent(new Event('input', { bubbles: true }));
       });
-      await page.waitForTimeout(1000);
+      // Wait until the draft has actually been persisted (it can take a moment on a busy machine).
+      await page.waitForFunction(() => (overflowCache.get('htmlNotepad.unsavedDrafts') || localStorage.getItem('htmlNotepad.unsavedDrafts') || '').length > 5e6, null, { timeout: 15000 });
+      await page.waitForTimeout(300);
       await page.reload(); await page.waitForTimeout(2200);
-      ok((await page.evaluate(() => document.getElementById('markdownSource').value.length)) > 5.9e6, 'draft restored');
+      const info = await page.evaluate(() => ({ len: document.getElementById('markdownSource').value.length, tabs: [...document.querySelectorAll('.tab')].map(t => t.textContent), active: document.querySelector('.tab.active')?.textContent }));
+      ok(info.len > 5.9e6, `draft restored (${JSON.stringify(info)})`);
     });
   }
 

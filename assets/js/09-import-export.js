@@ -11,7 +11,7 @@
 
   function safeDiskName(name, ext) {
     let base=String(name||'Untitled').replace(/[<>:"/\\|?*\x00-\x1F]/g,'_').trim()||'Untitled';
-    base=base.replace(/\.(txt|html?|rtf|md|markdown|json)$/i,'');
+    base=base.replace(/\.(txt|html?|rtf|md|markdown|docx|json)$/i,'');
     return base+ext;
   }
 

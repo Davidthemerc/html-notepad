@@ -220,7 +220,7 @@
     <span id="charCount">0 chars</span>
     <span id="cursorPosition">Ln 1, Col 1</span>
     <span class="zoom-control"><button id="zoomOutBtn" title="Zoom out">−</button><span id="zoomLabel">100%</span><button id="zoomInBtn" title="Zoom in">+</button></span>
-    <span>v3.2.0</span>
+    <span>v3.3.0</span>
   </div>
 </div>
 
@@ -315,6 +315,7 @@
   <button id="contextRegenerateRecoveryBtn" type="button" role="menuitem">Regenerate Recovery Key…</button>
   <button id="contextRemoveProtectionBtn" type="button" role="menuitem">Remove Password Protection…</button>
   <div id="contextProtectionExportSep" class="context-sep"></div>
+  <button id="contextExportDocxBtn" type="button" role="menuitem">Export Word (.docx)</button>
   <button id="contextExportRtfBtn" type="button" role="menuitem">Export RTF</button>
   <button id="contextExportTxtBtn" type="button" role="menuitem">Export TXT</button>
   <button id="contextExportHtmlBtn" type="button" role="menuitem">Export HTML</button>
@@ -539,7 +540,7 @@
   <div class="manual-head">
     <div>
       <div id="manualDialogTitle" class="manual-title">HTML Notepad User Manual</div>
-      <div class="manual-version">Integrated Help · v3.2.0</div>
+      <div class="manual-version">Integrated Help · v3.3.0</div>
     </div>
     <button id="manualCloseTopBtn" type="button" class="manual-close" title="Close Manual (Esc)" aria-label="Close Manual">×</button>
   </div>
@@ -561,7 +562,7 @@
 </dialog>
 
 <div id="manualSectionStore" hidden>
-<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.2.0</h2>
+<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.3.0</h2>
 <p>HTML Notepad is a self-contained, offline notepad that runs in a web
 browser. It provides tabs, rich-text formatting, folders, embedded
 images, search tools, printing, backups, and session recovery without
@@ -574,7 +575,7 @@ operating system unless you explicitly export a document or create a
 JSON backup.</p>
 <hr /></section>
 <section data-manual-id="starting-html-notepad" data-manual-title="1. Starting HTML Notepad"><h2>1. Starting HTML Notepad</h2>
-<p>For the standalone edition, open <code>HTML Notepad v3.2.0.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
+<p>For the standalone edition, open <code>HTML Notepad v3.3.0.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
 <p>A new, empty <strong>Untitled</strong> document is available when
 there is no previous workspace to restore. HTML Notepad also remembers
 the prior session, including open tabs, the active tab, tab order,
@@ -804,6 +805,7 @@ Folder…</strong>.</p>
 <li>Rename</li>
 <li>Duplicate</li>
 <li>Move to Folder…</li>
+<li>Export Word (.docx)</li>
 <li>Export RTF (Rich Text)</li>
 <li>Export TXT</li>
 <li>Export HTML (Rich Text or Markdown)</li>
@@ -948,6 +950,13 @@ the contents of a TXT file.</p>
 inappropriate page elements and attributes are removed rather than being
 allowed to execute inside Notepad. Markdown files retain their Markdown
 source.</p>
+<h3>Export Word (.docx)</h3>
+<p>Right-click a saved document and choose <strong>Export Word (.docx)</strong>
+to download a basic Word file. Headings become real Word Heading 1–6 styles (so
+Word’s Navigation pane and Insert Table of Contents work), with text formatting,
+links, nested lists, tables, images, and alignment. Markdown documents are
+rendered first; plain text becomes one paragraph per line. This is a basic export,
+not full Word compatibility.</p>
 <h3>Export TXT</h3>
 <p>Right-click a saved document and choose <strong>Export TXT</strong>
 to create a plain-text computer file. Rich formatting is removed.</p>
@@ -1570,12 +1579,12 @@ Press <strong>/</strong> or <strong>Ctrl+F</strong> to focus manual
 search, <strong>Alt+Up</strong> or <strong>Alt+Down</strong> to move
 between sections, and <strong>Escape</strong> to close the popup.</p>
 <hr />
-<p><em>HTML Notepad User Manual — v3.2.0</em></p></section>
+<p><em>HTML Notepad User Manual — v3.3.0</em></p></section>
 
 <section data-manual-id="pwa-and-standalone-builds" data-manual-title="28. PWA and Standalone Builds"><h2>28. PWA and Standalone Builds</h2>
-<p>Version 3.2.0 is published in two forms that share the same application code and features.</p>
+<p>Version 3.3.0 is published in two forms that share the same application code and features.</p>
 <ul>
-<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.2.0.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
+<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.3.0.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
 <li><strong>Modular/PWA:</strong> the GitHub build uses <code>index.html</code>, <code>assets/styles.css</code>, separate responsibility-based JavaScript files under <code>assets/js/</code>, <code>manifest.webmanifest</code>, icons, and <code>sw.js</code>. The hosted PWA runs those separate JavaScript files directly; it does not use a monolithic <code>app.js</code>. Shared runtime state is initialized during startup after all ordered scripts have loaded, so cross-file dependencies do not rely on single-file function hoisting. The service worker only intercepts same-origin HTTP/HTTPS requests; browser-extension and other non-web schemes are ignored. The Find/Replace bar reserves its own height above the ruler on desktop. Host the built folder over HTTPS (for example with GitHub Pages or Cloudflare Pages) to make it installable and to allow the service worker to cache the application shell for offline launches.</li>
 </ul>
 <p>The hosted PWA does not upload Notepad documents. Saved documents, folders, images, settings, and drafts continue to use browser-local IndexedDB and localStorage. The hosting server supplies the application files themselves.</p>
@@ -1636,6 +1645,7 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
 <script src="./assets/js/08-markdown.js" defer></script>
 <script src="./assets/js/09-import-export.js" defer></script>
 <script src="./assets/js/09a-docx-import.js" defer></script>
+<script src="./assets/js/09b-docx-export.js" defer></script>
 <script src="./assets/js/10-protection.js" defer></script>
 <script src="./assets/js/11-trash.js" defer></script>
 <script src="./assets/js/12-backup-restore.js" defer></script>

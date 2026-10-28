@@ -180,7 +180,8 @@
       const nodes = [];
       const rPr = wFirst(run, 'rPr');
       const rStyle = wAttr(wFirst(rPr, 'rStyle'), 'val');
-      const props = { ...docxResolveRun(styles, rStyle), ...docxRunProps(rPr) };
+      const direct = docxRunProps(rPr);
+      const props = { ...docxResolveRun(styles, rStyle), ...direct };
       let text = '';
       const flush = () => {
         if (!text) return;
@@ -192,6 +193,8 @@
         if (props.strike) wrap('s');
         if (props.vertAlign === 'superscript') wrap('sup'); else if (props.vertAlign === 'subscript') wrap('sub');
         const css = [];
+        if (direct.font) css.push(`font-family:${docxFontStack(direct.font)}`);
+        if (direct.size) css.push(`font-size:${direct.size}pt`);
         if (props.color && /^[0-9a-f]{6}$/i.test(props.color)) css.push(`color:#${props.color}`);
         if (props.highlight && DOCX_HIGHLIGHTS[props.highlight]) css.push(`background-color:${DOCX_HIGHLIGHTS[props.highlight]}`);
         if (css.length) { const span = document.createElement('span'); span.style.cssText = css.join(';'); span.appendChild(node); node = span; }

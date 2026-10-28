@@ -262,6 +262,7 @@
     $('contextRemoveProtectionBtn').addEventListener('click', () => {
       const id=selectedFileId; closeFileContextMenu(); if(id) removeProtectedFileProtection(id);
     });
+    $('contextExportDocxBtn').addEventListener('click', () => { closeFileContextMenu(); exportSelectedDocx(); });
     $('contextExportRtfBtn').addEventListener('click', () => { closeFileContextMenu(); exportSelectedRtf(); });
     $('contextExportTxtBtn').addEventListener('click', () => { closeFileContextMenu(); exportSelectedTxt(); });
     $('contextExportHtmlBtn').addEventListener('click', () => { closeFileContextMenu(); exportSelectedHtml(); });

@@ -1,4 +1,4 @@
-  const APP_VERSION = '3.2.0';
+  const APP_VERSION = '3.3.0';
   const DB_NAME = 'HTMLNotepadDB';
   const DB_VERSION = 3;
   const FILE_STORE = 'files';
