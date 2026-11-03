@@ -11,6 +11,7 @@
     buildColorPalette();
     buildSpecialChars();
     applySettings();
+    setupViewportSync();
     setFilesDrawer(false);
     scheduleRulerBuild();
     bindEvents();

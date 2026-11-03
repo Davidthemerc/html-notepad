@@ -2,7 +2,7 @@
 <html lang="en" data-build="standalone">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
 <meta name="theme-color" content="#2d5f86" />
 <meta name="application-name" content="Notepad" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -1581,6 +1581,12 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
 .outline-empty{padding:14px 12px;color:var(--muted,#667);font-size:.92em}
 @media (max-width:760px){.outline-panel{top:auto;bottom:40px;height:52vh;right:12px;left:12px;width:auto}}
 
+/* Keep the whole app above the on-screen keyboard (see setupViewportSync). */
+@media (hover: none) and (pointer: coarse) {
+  html, body { min-height: 0; }
+  #app { height: var(--vvh, 100dvh); transform: translateY(var(--vvtop, 0px)); }
+}
+
 </style>
 </head>
 <body>
@@ -1787,7 +1793,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
     <span id="charCount">0 chars</span>
     <span id="cursorPosition">Ln 1, Col 1</span>
     <span class="zoom-control"><button id="zoomOutBtn" title="Zoom out">−</button><span id="zoomLabel">100%</span><button id="zoomInBtn" title="Zoom in">+</button></span>
-    <span>v3.3.0</span>
+    <span>v3.3.1</span>
   </div>
 </div>
 
@@ -2107,7 +2113,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
   <div class="manual-head">
     <div>
       <div id="manualDialogTitle" class="manual-title">HTML Notepad User Manual</div>
-      <div class="manual-version">Integrated Help · v3.3.0</div>
+      <div class="manual-version">Integrated Help · v3.3.1</div>
     </div>
     <button id="manualCloseTopBtn" type="button" class="manual-close" title="Close Manual (Esc)" aria-label="Close Manual">×</button>
   </div>
@@ -2129,7 +2135,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
 </dialog>
 
 <div id="manualSectionStore" hidden>
-<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.3.0</h2>
+<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.3.1</h2>
 <p>HTML Notepad is a self-contained, offline notepad that runs in a web
 browser. It provides tabs, rich-text formatting, folders, embedded
 images, search tools, printing, backups, and session recovery without
@@ -2142,7 +2148,7 @@ operating system unless you explicitly export a document or create a
 JSON backup.</p>
 <hr /></section>
 <section data-manual-id="starting-html-notepad" data-manual-title="1. Starting HTML Notepad"><h2>1. Starting HTML Notepad</h2>
-<p>For the standalone edition, open <code>HTML Notepad v3.3.0.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
+<p>For the standalone edition, open <code>HTML Notepad v3.3.1.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
 <p>A new, empty <strong>Untitled</strong> document is available when
 there is no previous workspace to restore. HTML Notepad also remembers
 the prior session, including open tabs, the active tab, tab order,
@@ -3146,12 +3152,12 @@ Press <strong>/</strong> or <strong>Ctrl+F</strong> to focus manual
 search, <strong>Alt+Up</strong> or <strong>Alt+Down</strong> to move
 between sections, and <strong>Escape</strong> to close the popup.</p>
 <hr />
-<p><em>HTML Notepad User Manual — v3.3.0</em></p></section>
+<p><em>HTML Notepad User Manual — v3.3.1</em></p></section>
 
 <section data-manual-id="pwa-and-standalone-builds" data-manual-title="28. PWA and Standalone Builds"><h2>28. PWA and Standalone Builds</h2>
-<p>Version 3.3.0 is published in two forms that share the same application code and features.</p>
+<p>Version 3.3.1 is published in two forms that share the same application code and features.</p>
 <ul>
-<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.3.0.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
+<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.3.1.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
 <li><strong>Modular/PWA:</strong> the GitHub build uses <code>index.html</code>, <code>assets/styles.css</code>, separate responsibility-based JavaScript files under <code>assets/js/</code>, <code>manifest.webmanifest</code>, icons, and <code>sw.js</code>. The hosted PWA runs those separate JavaScript files directly; it does not use a monolithic <code>app.js</code>. Shared runtime state is initialized during startup after all ordered scripts have loaded, so cross-file dependencies do not rely on single-file function hoisting. The service worker only intercepts same-origin HTTP/HTTPS requests; browser-extension and other non-web schemes are ignored. The Find/Replace bar reserves its own height above the ruler on desktop. Host the built folder over HTTPS (for example with GitHub Pages or Cloudflare Pages) to make it installable and to allow the service worker to cache the application shell for offline launches.</li>
 </ul>
 <p>The hosted PWA does not upload Notepad documents. Saved documents, folders, images, settings, and drafts continue to use browser-local IndexedDB and localStorage. The hosting server supplies the application files themselves.</p>
@@ -3192,7 +3198,7 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
 </dialog>
 
 <script>
-  const APP_VERSION = '3.3.0';
+  const APP_VERSION = '3.3.1';
   const DB_NAME = 'HTMLNotepadDB';
   const DB_VERSION = 3;
   const FILE_STORE = 'files';
@@ -170842,6 +170848,47 @@ $tec
   // ===========================================================================
 
 
+  // On-screen keyboard handling (phones/tablets). Browsers that overlay the keyboard instead of
+  // resizing the page would leave the bottom of the editor - and the caret - underneath it.
+  // The app height follows the VISUAL viewport, so the editor always ends above the keyboard
+  // and the browser's own caret scrolling keeps the typing position visible.
+  function setupViewportSync() {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const root = document.documentElement;
+    let lastHeight = vv.height, frame = 0;
+    const apply = () => {
+      frame = 0;
+      if (vv.scale > 1.01) return;                      // pinch-zoomed: leave layout alone
+      root.style.setProperty('--vvh', `${Math.round(vv.height)}px`);
+      root.style.setProperty('--vvtop', `${Math.round(vv.offsetTop)}px`);
+      const shrunk = vv.height < lastHeight - 80;       // keyboard just opened
+      lastHeight = vv.height;
+      if (shrunk) setTimeout(revealCaret, 60);
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(apply); };
+    vv.addEventListener('resize', schedule);
+    vv.addEventListener('scroll', schedule);
+    apply();
+  }
+
+  // Scrolls the caret into the visible part of the editor (used when the keyboard opens).
+  function revealCaret() {
+    const active = document.activeElement;
+    if (active === el.markdownSource) {
+      const area = el.markdownSource, pos = area.selectionEnd, line = parseFloat(getComputedStyle(area).lineHeight) || 24;
+      const top = textareaOffsetTop(area, pos);
+      if (top < area.scrollTop || top + line > area.scrollTop + area.clientHeight) {
+        area.scrollTop = Math.max(0, top - area.clientHeight + line * 3);
+      }
+    } else if (active === el.editor) {
+      const sel = getSelection();
+      if (!sel?.rangeCount) return;
+      const node = sel.getRangeAt(0).startContainer;
+      (node.nodeType === Node.TEXT_NODE ? node.parentElement : node)?.scrollIntoView?.({ block: 'nearest' });
+    }
+  }
+
   function setFilesDrawer(open) {
     el.workspace.classList.toggle('files-open', !!open);
     el.filesToggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -179020,6 +179067,7 @@ ${[[1, 32, '2F5496'], [2, 26, '2F5496'], [3, 24, '1F3763'], [4, 22, '2F5496'], [
     buildColorPalette();
     buildSpecialChars();
     applySettings();
+    setupViewportSync();
     setFilesDrawer(false);
     scheduleRulerBuild();
     bindEvents();

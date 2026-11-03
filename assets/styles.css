@@ -1566,3 +1566,9 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
 .outline-item.level-3,.outline-item.level-4,.outline-item.level-5,.outline-item.level-6{font-size:.92em;opacity:.9}
 .outline-empty{padding:14px 12px;color:var(--muted,#667);font-size:.92em}
 @media (max-width:760px){.outline-panel{top:auto;bottom:40px;height:52vh;right:12px;left:12px;width:auto}}
+
+/* Keep the whole app above the on-screen keyboard (see setupViewportSync). */
+@media (hover: none) and (pointer: coarse) {
+  html, body { min-height: 0; }
+  #app { height: var(--vvh, 100dvh); transform: translateY(var(--vvtop, 0px)); }
+}

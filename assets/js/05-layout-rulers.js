@@ -3,6 +3,47 @@
   // ===========================================================================
 
 
+  // On-screen keyboard handling (phones/tablets). Browsers that overlay the keyboard instead of
+  // resizing the page would leave the bottom of the editor - and the caret - underneath it.
+  // The app height follows the VISUAL viewport, so the editor always ends above the keyboard
+  // and the browser's own caret scrolling keeps the typing position visible.
+  function setupViewportSync() {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const root = document.documentElement;
+    let lastHeight = vv.height, frame = 0;
+    const apply = () => {
+      frame = 0;
+      if (vv.scale > 1.01) return;                      // pinch-zoomed: leave layout alone
+      root.style.setProperty('--vvh', `${Math.round(vv.height)}px`);
+      root.style.setProperty('--vvtop', `${Math.round(vv.offsetTop)}px`);
+      const shrunk = vv.height < lastHeight - 80;       // keyboard just opened
+      lastHeight = vv.height;
+      if (shrunk) setTimeout(revealCaret, 60);
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(apply); };
+    vv.addEventListener('resize', schedule);
+    vv.addEventListener('scroll', schedule);
+    apply();
+  }
+
+  // Scrolls the caret into the visible part of the editor (used when the keyboard opens).
+  function revealCaret() {
+    const active = document.activeElement;
+    if (active === el.markdownSource) {
+      const area = el.markdownSource, pos = area.selectionEnd, line = parseFloat(getComputedStyle(area).lineHeight) || 24;
+      const top = textareaOffsetTop(area, pos);
+      if (top < area.scrollTop || top + line > area.scrollTop + area.clientHeight) {
+        area.scrollTop = Math.max(0, top - area.clientHeight + line * 3);
+      }
+    } else if (active === el.editor) {
+      const sel = getSelection();
+      if (!sel?.rangeCount) return;
+      const node = sel.getRangeAt(0).startContainer;
+      (node.nodeType === Node.TEXT_NODE ? node.parentElement : node)?.scrollIntoView?.({ block: 'nearest' });
+    }
+  }
+
   function setFilesDrawer(open) {
     el.workspace.classList.toggle('files-open', !!open);
     el.filesToggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
