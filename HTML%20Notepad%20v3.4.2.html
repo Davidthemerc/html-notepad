@@ -1794,7 +1794,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
     <span id="charCount">0 chars</span>
     <span id="cursorPosition">Ln 1, Col 1</span>
     <span class="zoom-control"><button id="zoomOutBtn" title="Zoom out">−</button><span id="zoomLabel">100%</span><button id="zoomInBtn" title="Zoom in">+</button></span>
-    <span>v3.4.1</span>
+    <span>v3.4.2</span>
   </div>
 </div>
 
@@ -2114,7 +2114,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
   <div class="manual-head">
     <div>
       <div id="manualDialogTitle" class="manual-title">HTML Notepad User Manual</div>
-      <div class="manual-version">Integrated Help · v3.4.1</div>
+      <div class="manual-version">Integrated Help · v3.4.2</div>
     </div>
     <button id="manualCloseTopBtn" type="button" class="manual-close" title="Close Manual (Esc)" aria-label="Close Manual">×</button>
   </div>
@@ -2136,7 +2136,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
 </dialog>
 
 <div id="manualSectionStore" hidden>
-<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.4.1</h2>
+<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.4.2</h2>
 <p>HTML Notepad is a self-contained, offline notepad that runs in a web
 browser. It provides tabs, rich-text formatting, folders, embedded
 images, search tools, printing, backups, and session recovery without
@@ -2149,7 +2149,7 @@ operating system unless you explicitly export a document or create a
 JSON backup.</p>
 <hr /></section>
 <section data-manual-id="starting-html-notepad" data-manual-title="1. Starting HTML Notepad"><h2>1. Starting HTML Notepad</h2>
-<p>For the standalone edition, open <code>HTML Notepad v3.4.1.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
+<p>For the standalone edition, open <code>HTML Notepad v3.4.2.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
 <p>A new, empty <strong>Untitled</strong> document is available when
 there is no previous workspace to restore. HTML Notepad also remembers
 the prior session, including open tabs, the active tab, tab order,
@@ -3160,12 +3160,12 @@ Press <strong>/</strong> or <strong>Ctrl+F</strong> to focus manual
 search, <strong>Alt+Up</strong> or <strong>Alt+Down</strong> to move
 between sections, and <strong>Escape</strong> to close the popup.</p>
 <hr />
-<p><em>HTML Notepad User Manual — v3.4.1</em></p></section>
+<p><em>HTML Notepad User Manual — v3.4.2</em></p></section>
 
 <section data-manual-id="pwa-and-standalone-builds" data-manual-title="28. PWA and Standalone Builds"><h2>28. PWA and Standalone Builds</h2>
-<p>Version 3.4.1 is published in two forms that share the same application code and features.</p>
+<p>Version 3.4.2 is published in two forms that share the same application code and features.</p>
 <ul>
-<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.4.1.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
+<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.4.2.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
 <li><strong>Modular/PWA:</strong> the GitHub build uses <code>index.html</code>, <code>assets/styles.css</code>, separate responsibility-based JavaScript files under <code>assets/js/</code>, <code>manifest.webmanifest</code>, icons, and <code>sw.js</code>. The hosted PWA runs those separate JavaScript files directly; it does not use a monolithic <code>app.js</code>. Shared runtime state is initialized during startup after all ordered scripts have loaded, so cross-file dependencies do not rely on single-file function hoisting. The service worker only intercepts same-origin HTTP/HTTPS requests; browser-extension and other non-web schemes are ignored. The Find/Replace bar reserves its own height above the ruler on desktop. Host the built folder over HTTPS (for example with GitHub Pages or Cloudflare Pages) to make it installable and to allow the service worker to cache the application shell for offline launches.</li>
 </ul>
 <p>The hosted PWA does not upload Notepad documents. Saved documents, folders, images, settings, and drafts continue to use browser-local IndexedDB and localStorage. The hosting server supplies the application files themselves.</p>
@@ -3206,7 +3206,7 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
 </dialog>
 
 <script>
-  const APP_VERSION = '3.4.1';
+  const APP_VERSION = '3.4.2';
   const DB_NAME = 'HTMLNotepadDB';
   const DB_VERSION = 3;
   const FILE_STORE = 'files';
@@ -177058,9 +177058,19 @@ ${[[1, 32, '2F5496'], [2, 26, '2F5496'], [3, 24, '1F3763'], [4, 22, '2F5496'], [
   const equalsLineLength = text => String(text || '').replace(/ /g, ' ').replace(/\s+$/, '').length;
   const isEqualsOnly = text => /^\s*=+\s*$/.test(String(text || '').replace(/ /g, ' '));
 
+  // Tapping a toolbar button can blur the editor and, on some mobile browsers, reset the caret
+  // (often to the end). Remember where the caret was when the button was pressed and restore it.
+  let equalsCaret = null;
+  function rememberEqualsCaret() {
+    if (isSourceTab()) equalsCaret = { source: true, start: el.markdownSource.selectionStart, end: el.markdownSource.selectionEnd };
+    else if (selectionInsideEditor()) equalsCaret = { source: false, range: getSelection().getRangeAt(0).cloneRange() };
+    else equalsCaret = null;
+  }
+
   function insertEqualsLineSource() {
     const area = el.markdownSource, value = area.value;
-    area.focus();
+    area.focus({ preventScroll: true });
+    if (equalsCaret?.source) area.setSelectionRange(equalsCaret.start, equalsCaret.end);
     const pos = area.selectionStart;
     const lineStart = value.lastIndexOf('\n', pos - 1) + 1;
     let lineEnd = value.indexOf('\n', pos);
@@ -177115,8 +177125,11 @@ ${[[1, 32, '2F5496'], [2, 26, '2F5496'], [3, 24, '1F3763'], [4, 22, '2F5496'], [
   }
 
   function insertEqualsLineRich() {
-    el.editor.focus();
+    el.editor.focus({ preventScroll: true });
     const sel = getSelection();
+    if (equalsCaret && !equalsCaret.source && el.editor.contains(equalsCaret.range.startContainer)) {
+      sel.removeAllRanges(); sel.addRange(equalsCaret.range);
+    }
     if (!sel?.rangeCount || !el.editor.contains(sel.anchorNode)) return;
     const range = sel.getRangeAt(0);
     const start = range.startContainer.nodeType === Node.TEXT_NODE ? range.startContainer.parentElement : range.startContainer;
@@ -177188,6 +177201,7 @@ ${[[1, 32, '2F5496'], [2, 26, '2F5496'], [3, 24, '1F3763'], [4, 22, '2F5496'], [
     if (!requireActiveDocument()) return;
     if (isMarkdownTab() && !isMarkdownEditing()) return toast('Switch to Edit to add an = line.');
     if (isSourceTab()) insertEqualsLineSource(); else insertEqualsLineRich();
+    equalsCaret = null;
     updateCounts();
   }
 
@@ -178939,6 +178953,9 @@ ${[[1, 32, '2F5496'], [2, 26, '2F5496'], [3, 24, '1F3763'], [4, 22, '2F5496'], [
       if (isSourceTab()) { el.markdownSource.focus(); document.execCommand('redo'); markDirtyFromEditor(); updateLineNumbers(); }
       else exec('redo', true);
     });
+    // Keep the editor focused and remember the caret so the line lands exactly where the cursor is.
+    el.equalsLineBtn.addEventListener('pointerdown', rememberEqualsCaret);
+    el.equalsLineBtn.addEventListener('mousedown', event => event.preventDefault());
     el.equalsLineBtn.addEventListener('click', insertEqualsLine);
     el.boldBtn.addEventListener('click', runBold);
     el.italicBtn.addEventListener('click', runItalic);

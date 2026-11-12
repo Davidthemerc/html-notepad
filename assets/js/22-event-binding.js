@@ -439,6 +439,9 @@
       if (isSourceTab()) { el.markdownSource.focus(); document.execCommand('redo'); markDirtyFromEditor(); updateLineNumbers(); }
       else exec('redo', true);
     });
+    // Keep the editor focused and remember the caret so the line lands exactly where the cursor is.
+    el.equalsLineBtn.addEventListener('pointerdown', rememberEqualsCaret);
+    el.equalsLineBtn.addEventListener('mousedown', event => event.preventDefault());
     el.equalsLineBtn.addEventListener('click', insertEqualsLine);
     el.boldBtn.addEventListener('click', runBold);
     el.italicBtn.addEventListener('click', runItalic);

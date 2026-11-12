@@ -188,9 +188,19 @@
   const equalsLineLength = text => String(text || '').replace(/ /g, ' ').replace(/\s+$/, '').length;
   const isEqualsOnly = text => /^\s*=+\s*$/.test(String(text || '').replace(/ /g, ' '));
 
+  // Tapping a toolbar button can blur the editor and, on some mobile browsers, reset the caret
+  // (often to the end). Remember where the caret was when the button was pressed and restore it.
+  let equalsCaret = null;
+  function rememberEqualsCaret() {
+    if (isSourceTab()) equalsCaret = { source: true, start: el.markdownSource.selectionStart, end: el.markdownSource.selectionEnd };
+    else if (selectionInsideEditor()) equalsCaret = { source: false, range: getSelection().getRangeAt(0).cloneRange() };
+    else equalsCaret = null;
+  }
+
   function insertEqualsLineSource() {
     const area = el.markdownSource, value = area.value;
-    area.focus();
+    area.focus({ preventScroll: true });
+    if (equalsCaret?.source) area.setSelectionRange(equalsCaret.start, equalsCaret.end);
     const pos = area.selectionStart;
     const lineStart = value.lastIndexOf('\n', pos - 1) + 1;
     let lineEnd = value.indexOf('\n', pos);
@@ -245,8 +255,11 @@
   }
 
   function insertEqualsLineRich() {
-    el.editor.focus();
+    el.editor.focus({ preventScroll: true });
     const sel = getSelection();
+    if (equalsCaret && !equalsCaret.source && el.editor.contains(equalsCaret.range.startContainer)) {
+      sel.removeAllRanges(); sel.addRange(equalsCaret.range);
+    }
     if (!sel?.rangeCount || !el.editor.contains(sel.anchorNode)) return;
     const range = sel.getRangeAt(0);
     const start = range.startContainer.nodeType === Node.TEXT_NODE ? range.startContainer.parentElement : range.startContainer;
@@ -318,5 +331,6 @@
     if (!requireActiveDocument()) return;
     if (isMarkdownTab() && !isMarkdownEditing()) return toast('Switch to Edit to add an = line.');
     if (isSourceTab()) insertEqualsLineSource(); else insertEqualsLineRich();
+    equalsCaret = null;
     updateCounts();
   }

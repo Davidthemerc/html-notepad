@@ -212,6 +212,19 @@ async function suite(browser, label, url, { mobile = false } = {}) {
     await page.keyboard.type('\nbody'); await click('equalsLineBtn');
     eq(await page.evaluate(() => document.getElementById('markdownSource').value), 'Plain Title\n===========\nbody\n====');
   });
+  await test('= button lands at the caret even if the browser resets the caret to the end on blur', async () => {
+    await newDoc('Plain');
+    await page.fill('#markdownSource', 'Shopping list\n\nDiapers\nBread');
+    await page.evaluate(() => {
+      const s = document.getElementById('markdownSource'), i = s.value.indexOf('\n\nDiapers') + 1;
+      s.focus(); s.setSelectionRange(i, i);
+      s.addEventListener('blur', () => s.setSelectionRange(s.value.length, s.value.length));
+    });
+    await page.dispatchEvent('#equalsLineBtn', 'pointerdown');
+    await page.evaluate(() => document.activeElement.blur());
+    await click('equalsLineBtn');
+    eq(await page.evaluate(() => document.getElementById('markdownSource').value), 'Shopping list\n=============\nDiapers\nBread');
+  });
   await test('Markdown: footnotes and list-item continuation lines', async () => {
     const html = await render('Hi[^a] there.\n\n[^a]: The note\n\n- one\n  more\n- two');
     ok(html.includes('<sup class="fnref">1</sup>') && html.includes('<section class="footnotes">') && html.includes('The note'), 'footnote');
