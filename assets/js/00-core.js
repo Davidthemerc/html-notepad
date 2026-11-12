@@ -1,4 +1,4 @@
-  const APP_VERSION = '3.3.1';
+  const APP_VERSION = '3.4.0';
   const DB_NAME = 'HTMLNotepadDB';
   const DB_VERSION = 3;
   const FILE_STORE = 'files';
@@ -209,6 +209,7 @@
     autosaveToggle: $('autosaveToggle'),
     lineNumbersToggle: $('lineNumbersToggle'),
     largeDocToggle: $('largeDocToggle'),
+    equalsLineBtn: $('equalsLineBtn'),
     lineNumberGutter: $('lineNumberGutter'),
     spellContextSection: $('spellContextSection'),
     spellContextWord: $('spellContextWord'),

@@ -198,6 +198,20 @@ async function suite(browser, label, url, { mobile = false } = {}) {
     eq(await page.evaluate(() => [...document.querySelectorAll('.outline-item')].map(x => x.textContent)), ['One', 'Two']);
     await setOutline(false);
   });
+  await test('= button underlines a title with as many = as the line above (rich and plain)', async () => {
+    await newDoc('Rich');
+    await page.click('#editor'); await page.keyboard.type('My Title Here'); await page.keyboard.press('Enter');
+    await click('equalsLineBtn'); await page.waitForTimeout(150);
+    eq(await page.evaluate(() => document.getElementById('editor').innerText.replace(/\n+/g, '|')), 'My Title Here|=============');
+    await click('equalsLineBtn'); await page.waitForTimeout(100);
+    eq(await page.evaluate(() => document.getElementById('editor').innerText.replace(/\n+/g, '|')), 'My Title Here|=============');
+    await newDoc('Plain');
+    await page.click('#markdownSource'); await page.keyboard.type('Plain Title\n');
+    await click('equalsLineBtn');
+    eq(await page.evaluate(() => document.getElementById('markdownSource').value), 'Plain Title\n===========');
+    await page.keyboard.type('\nbody'); await click('equalsLineBtn');
+    eq(await page.evaluate(() => document.getElementById('markdownSource').value), 'Plain Title\n===========\nbody\n====');
+  });
   await test('Markdown: footnotes and list-item continuation lines', async () => {
     const html = await render('Hi[^a] there.\n\n[^a]: The note\n\n- one\n  more\n- two');
     ok(html.includes('<sup class="fnref">1</sup>') && html.includes('<section class="footnotes">') && html.includes('The note'), 'footnote');

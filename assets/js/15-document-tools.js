@@ -180,3 +180,143 @@
     const nearest=sizes.reduce((a,b)=>Math.abs(b-size)<Math.abs(a-size)?b:a,16);
     el.fontSizeSelect.value=String(nearest);
   }
+
+  // ---------------------------------------------------------------------------
+  // "=" underline: fills the current empty line (or adds a new line under a text line) with
+  // as many "=" characters as the line above it, for plain-text style titles/dividers.
+  // ---------------------------------------------------------------------------
+  const equalsLineLength = text => String(text || '').replace(/ /g, ' ').replace(/\s+$/, '').length;
+  const isEqualsOnly = text => /^\s*=+\s*$/.test(String(text || '').replace(/ /g, ' '));
+
+  function insertEqualsLineSource() {
+    const area = el.markdownSource, value = area.value;
+    area.focus();
+    const pos = area.selectionStart;
+    const lineStart = value.lastIndexOf('\n', pos - 1) + 1;
+    let lineEnd = value.indexOf('\n', pos);
+    if (lineEnd < 0) lineEnd = value.length;
+    const current = value.slice(lineStart, lineEnd);
+    const above = value.slice(0, Math.max(0, lineStart - 1)).split('\n');
+    const lineAbove = lineStart === 0 ? '' : above.reverse().find(line => line.trim() && !isEqualsOnly(line)) || '';
+    const replaceCurrent = !current.trim() || isEqualsOnly(current);
+    const count = equalsLineLength(replaceCurrent ? lineAbove : current);
+    if (!count) return toast('Type a line of text first, then tap = to underline it.');
+    const bar = '='.repeat(count);
+    if (replaceCurrent) area.setSelectionRange(lineStart, lineEnd);
+    else area.setSelectionRange(lineEnd, lineEnd);
+    const text = replaceCurrent ? bar : `\n${bar}`;
+    if (!document.execCommand('insertText', false, text)) {
+      area.setRangeText(text, area.selectionStart, area.selectionEnd, 'end');
+      area.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+
+  const EQUALS_BLOCKS = 'li,p,div,h1,h2,h3,h4,h5,h6,blockquote,pre';
+  function lastLineText(node) {
+    const kids = [...node.children].filter(c => c.matches?.(EQUALS_BLOCKS + ',ul,ol'));
+    return kids.length ? lastLineText(kids[kids.length - 1]) : (node.textContent || '');
+  }
+
+  // Text of the nearest non-empty line above `start`, whether lines are blocks (div/p/li) or
+  // runs of text separated by <br> (the first line of a contenteditable is often a bare text node).
+  function lineAboveText(start) {
+    const blocks = EQUALS_BLOCKS + ',ul,ol';
+    const usable = text => text.trim() && !isEqualsOnly(text);
+    for (let node = start; node && node !== el.editor; node = node.parentNode) {
+      let prev = node.previousSibling;
+      while (prev) {
+        if (prev.nodeType === Node.ELEMENT_NODE && prev.matches(blocks)) {
+          const text = lastLineText(prev);
+          if (usable(text)) return text;
+          prev = prev.previousSibling;
+        } else if (prev.nodeName === 'BR') {
+          prev = prev.previousSibling;
+        } else {
+          let text = '', run = prev;
+          while (run && run.nodeName !== 'BR' && !(run.nodeType === Node.ELEMENT_NODE && run.matches(blocks))) {
+            text = (run.textContent || '') + text; run = run.previousSibling;
+          }
+          if (usable(text)) return text;
+          prev = run;
+        }
+      }
+    }
+    return '';
+  }
+
+  function insertEqualsLineRich() {
+    el.editor.focus();
+    const sel = getSelection();
+    if (!sel?.rangeCount || !el.editor.contains(sel.anchorNode)) return;
+    const range = sel.getRangeAt(0);
+    const start = range.startContainer.nodeType === Node.TEXT_NODE ? range.startContainer.parentElement : range.startContainer;
+    const block = start === el.editor ? null : start.closest(EQUALS_BLOCKS);
+    let current, lineAbove = '';
+
+    if (block && el.editor.contains(block) && block !== el.editor) {
+      current = block.textContent || '';
+      lineAbove = lineAboveText(block);
+    } else {
+      // Lines separated by <br> directly inside the editor.
+      let top = range.startContainer;
+      if (top === el.editor) top = el.editor.childNodes[range.startOffset] || el.editor.lastChild;
+      while (top && top.parentNode !== el.editor) top = top.parentNode;
+      const isBlockNode = n => n.nodeType === Node.ELEMENT_NODE && n.matches(EQUALS_BLOCKS + ',ul,ol');
+      const collect = (from, step) => {
+        let text = '', node = from;
+        while (node && node.nodeName !== 'BR' && !isBlockNode(node)) { text = step < 0 ? (node.textContent || '') + text : text + (node.textContent || ''); node = step < 0 ? node.previousSibling : node.nextSibling; }
+        return { text, boundary: node };
+      };
+      const before = top ? collect(top.nodeName === 'BR' ? top.previousSibling : top, -1) : { text: '', boundary: null };
+      const after = top && top.nodeName !== 'BR' ? collect(top.nextSibling, 1) : { text: '', boundary: top };
+      current = before.text + after.text;
+      if (before.boundary) lineAbove = lineAboveText(before.boundary);
+      if (current.trim() && !isEqualsOnly(current)) {
+        const next = after.boundary && after.boundary.nodeName !== 'BR' ? after.boundary : null;
+        if (next && isEqualsOnly(next.textContent)) {
+          const barRange = document.createRange();
+          barRange.selectNodeContents(next);
+          sel.removeAllRanges(); sel.addRange(barRange);
+          document.execCommand('insertText', false, '='.repeat(equalsLineLength(current)));
+          return;
+        }
+        const caret = document.createRange();
+        if (after.boundary) caret.setStartBefore(after.boundary); else caret.selectNodeContents(el.editor), caret.collapse(false);
+        caret.collapse(true); sel.removeAllRanges(); sel.addRange(caret);
+        const count = equalsLineLength(current);
+        document.execCommand('insertLineBreak');
+        document.execCommand('insertText', false, '='.repeat(count));
+        return;
+      }
+      if (isEqualsOnly(current) && (before.boundary || after.boundary)) {
+        // Replace the existing === line.
+        const lineRange = document.createRange();
+        lineRange.setStartAfter(before.boundary || el.editor.firstChild);
+        if (!before.boundary) lineRange.setStartBefore(el.editor.firstChild);
+        if (after.boundary) lineRange.setEndBefore(after.boundary); else lineRange.setEndAfter(el.editor.lastChild);
+        sel.removeAllRanges(); sel.addRange(lineRange);
+      }
+    }
+
+    const replaceCurrent = !current.trim() || isEqualsOnly(current);
+    const count = equalsLineLength(replaceCurrent ? lineAbove : current);
+    if (!count) return toast('Type a line of text first, then tap = to underline it.');
+    const bar = '='.repeat(count);
+    if (block && block !== el.editor) {
+      // Tapping on a text line that already has an === line under it resizes that line.
+      const existing = !replaceCurrent && block.nextElementSibling && isEqualsOnly(block.nextElementSibling.textContent) ? block.nextElementSibling : null;
+      const lineRange = document.createRange();
+      lineRange.selectNodeContents(existing || block);
+      if (!replaceCurrent && !existing) lineRange.collapse(false);
+      sel.removeAllRanges(); sel.addRange(lineRange);
+      if (!replaceCurrent && !existing) document.execCommand('insertParagraph');
+    }
+    document.execCommand('insertText', false, bar);
+  }
+
+  function insertEqualsLine() {
+    if (!requireActiveDocument()) return;
+    if (isMarkdownTab() && !isMarkdownEditing()) return toast('Switch to Edit to add an = line.');
+    if (isSourceTab()) insertEqualsLineSource(); else insertEqualsLineRich();
+    updateCounts();
+  }

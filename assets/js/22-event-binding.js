@@ -439,6 +439,7 @@
       if (isSourceTab()) { el.markdownSource.focus(); document.execCommand('redo'); markDirtyFromEditor(); updateLineNumbers(); }
       else exec('redo', true);
     });
+    el.equalsLineBtn.addEventListener('click', insertEqualsLine);
     el.boldBtn.addEventListener('click', runBold);
     el.italicBtn.addEventListener('click', runItalic);
     el.underlineBtn.addEventListener('click', () => exec('underline', true));
