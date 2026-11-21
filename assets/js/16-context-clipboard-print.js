@@ -115,6 +115,54 @@
     try{await navigator.clipboard.writeText(sel.toString().replace(/\r\n?/g,'\n'));}
     catch{try{document.execCommand('copy');}catch{}}
   }
+  // Toolbar Select All / Copy (easy on phones, where long-press selection is fiddly).
+  function toolbarSelectAll() {
+    if (!requireActiveDocument()) return;
+    if (isMarkdownTab() && !isMarkdownEditing()) { getSelection().selectAllChildren(el.markdownPreview); return; }
+    if (isSourceTab()) {
+      el.markdownSource.focus({ preventScroll: true });
+      el.markdownSource.setSelectionRange(0, el.markdownSource.value.length);
+    } else {
+      el.editor.focus({ preventScroll: true });
+      const range = document.createRange();
+      range.selectNodeContents(el.editor);
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    }
+    updateCounts();
+  }
+
+  // Copies the current selection; with nothing selected it copies the whole document and puts the
+  // caret back where it was.
+  async function toolbarCopy() {
+    if (!requireActiveDocument()) return;
+    const previewing = isMarkdownTab() && !isMarkdownEditing();
+    const source = isSourceTab() && !previewing;
+    let restore = null, copiedAll = false;
+    const hasSelection = source
+      ? el.markdownSource.selectionStart !== el.markdownSource.selectionEnd
+      : (() => { const sel = getSelection(); return !!sel && !sel.isCollapsed && (previewing ? el.markdownPreview.contains(sel.anchorNode) : selectionInsideEditor()); })();
+    if (!hasSelection) {
+      copiedAll = true;
+      if (source) restore = [el.markdownSource.selectionStart, el.markdownSource.selectionEnd];
+      else if (!previewing && selectionInsideEditor()) restore = getSelection().getRangeAt(0).cloneRange();
+      toolbarSelectAll();
+    } else if (source) el.markdownSource.focus({ preventScroll: true });
+    else if (!previewing) el.editor.focus({ preventScroll: true });
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch {}
+    if (!ok) {
+      try {
+        const text = source ? el.markdownSource.value.slice(el.markdownSource.selectionStart, el.markdownSource.selectionEnd) : getSelection().toString();
+        await navigator.clipboard.writeText(text.replace(/\r\n?/g, '\n')); ok = true;
+      } catch {}
+    }
+    if (copiedAll) {
+      if (source && restore) el.markdownSource.setSelectionRange(restore[0], restore[1]);
+      else if (restore) { const sel = getSelection(); sel.removeAllRanges(); sel.addRange(restore); }
+    }
+    toast(ok ? (copiedAll ? 'Copied the whole document.' : 'Copied.') : 'Could not copy. Select the text and use the browser menu.');
+  }
+
   async function editorCopy(){restoreEditorSelection();await clipboardWriteSelection();closeEditorContextMenu();}
   async function editorCut(){
     restoreEditorSelection(); const sel=getSelection(); if(!sel||sel.isCollapsed)return;

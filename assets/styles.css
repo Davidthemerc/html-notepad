@@ -1572,3 +1572,13 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
   html, body { min-height: 0; }
   #app { height: var(--vvh, 100dvh); transform: translateY(var(--vvtop, 0px)); }
 }
+
+/* Very narrow phones: slightly tighter toolbar buttons so the collapsed row stays on one line. */
+@media (max-width: 400px) {
+  #formatToolbar { gap: 3px; padding-left: 6px; padding-right: 6px; }
+  #formatToolbar > button { min-width: 34px !important; padding-left: 6px; padding-right: 6px; }
+  #formatToolbar > #toolbarExpandBtn { min-width: 34px !important; }
+}
+@media (max-width: 345px) {
+  #formatToolbar > button, #formatToolbar > #toolbarExpandBtn { min-width: 30px !important; padding-left: 4px; padding-right: 4px; }
+}

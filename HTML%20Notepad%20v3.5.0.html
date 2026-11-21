@@ -1587,6 +1587,16 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
   #app { height: var(--vvh, 100dvh); transform: translateY(var(--vvtop, 0px)); }
 }
 
+/* Very narrow phones: slightly tighter toolbar buttons so the collapsed row stays on one line. */
+@media (max-width: 400px) {
+  #formatToolbar { gap: 3px; padding-left: 6px; padding-right: 6px; }
+  #formatToolbar > button { min-width: 34px !important; padding-left: 6px; padding-right: 6px; }
+  #formatToolbar > #toolbarExpandBtn { min-width: 34px !important; }
+}
+@media (max-width: 345px) {
+  #formatToolbar > button, #formatToolbar > #toolbarExpandBtn { min-width: 30px !important; padding-left: 4px; padding-right: 4px; }
+}
+
 </style>
 </head>
 <body>
@@ -1618,6 +1628,8 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
     <button id="italicBtn" class="rich-only md-supported md-edit-control" title="Italic (Ctrl+I)" aria-label="Italic"><em>I</em></button>
     <button id="underlineBtn" class="rich-only" title="Underline (Ctrl+U)" aria-label="Underline"><u>U</u></button>
     <button id="equalsLineBtn" title="Underline with = signs: fills this line (or a new line under it) with = as long as the line above" aria-label="Equals underline">=</button>
+    <button id="selectAllBtn" title="Select all text (Ctrl+A)" aria-label="Select all"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2" stroke-dasharray="3 3"/><path d="M8 9h8M8 12h8M8 15h5"/></svg></button>
+    <button id="copyBtn" title="Copy the selection, or the whole document if nothing is selected" aria-label="Copy"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg></button>
     <button id="clearFormattingBtn" class="mobile-extra rich-only" title="Clear formatting from selected text" aria-label="Clear formatting">Tx</button>
     <div class="toolbar-menu-wrap mobile-extra rich-only">
       <button id="editToolsBtn" title="Editing tools" aria-label="Editing tools">Edit ▾</button>
@@ -1794,7 +1806,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
     <span id="charCount">0 chars</span>
     <span id="cursorPosition">Ln 1, Col 1</span>
     <span class="zoom-control"><button id="zoomOutBtn" title="Zoom out">−</button><span id="zoomLabel">100%</span><button id="zoomInBtn" title="Zoom in">+</button></span>
-    <span>v3.4.2</span>
+    <span>v3.5.0</span>
   </div>
 </div>
 
@@ -2114,7 +2126,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
   <div class="manual-head">
     <div>
       <div id="manualDialogTitle" class="manual-title">HTML Notepad User Manual</div>
-      <div class="manual-version">Integrated Help · v3.4.2</div>
+      <div class="manual-version">Integrated Help · v3.5.0</div>
     </div>
     <button id="manualCloseTopBtn" type="button" class="manual-close" title="Close Manual (Esc)" aria-label="Close Manual">×</button>
   </div>
@@ -2136,7 +2148,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
 </dialog>
 
 <div id="manualSectionStore" hidden>
-<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.4.2</h2>
+<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.5.0</h2>
 <p>HTML Notepad is a self-contained, offline notepad that runs in a web
 browser. It provides tabs, rich-text formatting, folders, embedded
 images, search tools, printing, backups, and session recovery without
@@ -2149,7 +2161,7 @@ operating system unless you explicitly export a document or create a
 JSON backup.</p>
 <hr /></section>
 <section data-manual-id="starting-html-notepad" data-manual-title="1. Starting HTML Notepad"><h2>1. Starting HTML Notepad</h2>
-<p>For the standalone edition, open <code>HTML Notepad v3.4.2.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
+<p>For the standalone edition, open <code>HTML Notepad v3.5.0.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
 <p>A new, empty <strong>Untitled</strong> document is available when
 there is no previous workspace to restore. HTML Notepad also remembers
 the prior session, including open tabs, the active tab, tab order,
@@ -3160,12 +3172,12 @@ Press <strong>/</strong> or <strong>Ctrl+F</strong> to focus manual
 search, <strong>Alt+Up</strong> or <strong>Alt+Down</strong> to move
 between sections, and <strong>Escape</strong> to close the popup.</p>
 <hr />
-<p><em>HTML Notepad User Manual — v3.4.2</em></p></section>
+<p><em>HTML Notepad User Manual — v3.5.0</em></p></section>
 
 <section data-manual-id="pwa-and-standalone-builds" data-manual-title="28. PWA and Standalone Builds"><h2>28. PWA and Standalone Builds</h2>
-<p>Version 3.4.2 is published in two forms that share the same application code and features.</p>
+<p>Version 3.5.0 is published in two forms that share the same application code and features.</p>
 <ul>
-<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.4.2.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
+<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.5.0.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
 <li><strong>Modular/PWA:</strong> the GitHub build uses <code>index.html</code>, <code>assets/styles.css</code>, separate responsibility-based JavaScript files under <code>assets/js/</code>, <code>manifest.webmanifest</code>, icons, and <code>sw.js</code>. The hosted PWA runs those separate JavaScript files directly; it does not use a monolithic <code>app.js</code>. Shared runtime state is initialized during startup after all ordered scripts have loaded, so cross-file dependencies do not rely on single-file function hoisting. The service worker only intercepts same-origin HTTP/HTTPS requests; browser-extension and other non-web schemes are ignored. The Find/Replace bar reserves its own height above the ruler on desktop. Host the built folder over HTTPS (for example with GitHub Pages or Cloudflare Pages) to make it installable and to allow the service worker to cache the application shell for offline launches.</li>
 </ul>
 <p>The hosted PWA does not upload Notepad documents. Saved documents, folders, images, settings, and drafts continue to use browser-local IndexedDB and localStorage. The hosting server supplies the application files themselves.</p>
@@ -3206,7 +3218,7 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
 </dialog>
 
 <script>
-  const APP_VERSION = '3.4.2';
+  const APP_VERSION = '3.5.0';
   const DB_NAME = 'HTMLNotepadDB';
   const DB_VERSION = 3;
   const FILE_STORE = 'files';
@@ -3418,6 +3430,8 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
     lineNumbersToggle: $('lineNumbersToggle'),
     largeDocToggle: $('largeDocToggle'),
     equalsLineBtn: $('equalsLineBtn'),
+    selectAllBtn: $('selectAllBtn'),
+    copyBtn: $('copyBtn'),
     lineNumberGutter: $('lineNumberGutter'),
     spellContextSection: $('spellContextSection'),
     spellContextWord: $('spellContextWord'),
@@ -177322,6 +177336,54 @@ ${[[1, 32, '2F5496'], [2, 26, '2F5496'], [3, 24, '1F3763'], [4, 22, '2F5496'], [
     try{await navigator.clipboard.writeText(sel.toString().replace(/\r\n?/g,'\n'));}
     catch{try{document.execCommand('copy');}catch{}}
   }
+  // Toolbar Select All / Copy (easy on phones, where long-press selection is fiddly).
+  function toolbarSelectAll() {
+    if (!requireActiveDocument()) return;
+    if (isMarkdownTab() && !isMarkdownEditing()) { getSelection().selectAllChildren(el.markdownPreview); return; }
+    if (isSourceTab()) {
+      el.markdownSource.focus({ preventScroll: true });
+      el.markdownSource.setSelectionRange(0, el.markdownSource.value.length);
+    } else {
+      el.editor.focus({ preventScroll: true });
+      const range = document.createRange();
+      range.selectNodeContents(el.editor);
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    }
+    updateCounts();
+  }
+
+  // Copies the current selection; with nothing selected it copies the whole document and puts the
+  // caret back where it was.
+  async function toolbarCopy() {
+    if (!requireActiveDocument()) return;
+    const previewing = isMarkdownTab() && !isMarkdownEditing();
+    const source = isSourceTab() && !previewing;
+    let restore = null, copiedAll = false;
+    const hasSelection = source
+      ? el.markdownSource.selectionStart !== el.markdownSource.selectionEnd
+      : (() => { const sel = getSelection(); return !!sel && !sel.isCollapsed && (previewing ? el.markdownPreview.contains(sel.anchorNode) : selectionInsideEditor()); })();
+    if (!hasSelection) {
+      copiedAll = true;
+      if (source) restore = [el.markdownSource.selectionStart, el.markdownSource.selectionEnd];
+      else if (!previewing && selectionInsideEditor()) restore = getSelection().getRangeAt(0).cloneRange();
+      toolbarSelectAll();
+    } else if (source) el.markdownSource.focus({ preventScroll: true });
+    else if (!previewing) el.editor.focus({ preventScroll: true });
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch {}
+    if (!ok) {
+      try {
+        const text = source ? el.markdownSource.value.slice(el.markdownSource.selectionStart, el.markdownSource.selectionEnd) : getSelection().toString();
+        await navigator.clipboard.writeText(text.replace(/\r\n?/g, '\n')); ok = true;
+      } catch {}
+    }
+    if (copiedAll) {
+      if (source && restore) el.markdownSource.setSelectionRange(restore[0], restore[1]);
+      else if (restore) { const sel = getSelection(); sel.removeAllRanges(); sel.addRange(restore); }
+    }
+    toast(ok ? (copiedAll ? 'Copied the whole document.' : 'Copied.') : 'Could not copy. Select the text and use the browser menu.');
+  }
+
   async function editorCopy(){restoreEditorSelection();await clipboardWriteSelection();closeEditorContextMenu();}
   async function editorCut(){
     restoreEditorSelection(); const sel=getSelection(); if(!sel||sel.isCollapsed)return;
@@ -178953,6 +179015,13 @@ ${[[1, 32, '2F5496'], [2, 26, '2F5496'], [3, 24, '1F3763'], [4, 22, '2F5496'], [
       if (isSourceTab()) { el.markdownSource.focus(); document.execCommand('redo'); markDirtyFromEditor(); updateLineNumbers(); }
       else exec('redo', true);
     });
+    // Select All / Copy: keep the editor focused when the button is pressed so its selection survives.
+    for (const button of [el.selectAllBtn, el.copyBtn]) {
+      button.addEventListener('mousedown', event => event.preventDefault());
+      button.addEventListener('pointerdown', rememberEqualsCaret);
+    }
+    el.selectAllBtn.addEventListener('click', toolbarSelectAll);
+    el.copyBtn.addEventListener('click', toolbarCopy);
     // Keep the editor focused and remember the caret so the line lands exactly where the cursor is.
     el.equalsLineBtn.addEventListener('pointerdown', rememberEqualsCaret);
     el.equalsLineBtn.addEventListener('mousedown', event => event.preventDefault());

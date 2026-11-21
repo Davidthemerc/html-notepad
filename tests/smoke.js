@@ -225,6 +225,17 @@ async function suite(browser, label, url, { mobile = false } = {}) {
     await click('equalsLineBtn');
     eq(await page.evaluate(() => document.getElementById('markdownSource').value), 'Shopping list\n=============\nDiapers\nBread');
   });
+  await test('toolbar Select All and Copy (copy-all when nothing is selected) keep the caret', async () => {
+    await newDoc('Plain');
+    await page.fill('#markdownSource', 'plain body\nline 2');
+    await page.evaluate(() => { const s = document.getElementById('markdownSource'); s.focus(); s.setSelectionRange(3, 3); });
+    await click('selectAllBtn');
+    eq(await page.evaluate(() => [document.getElementById('markdownSource').selectionStart, document.getElementById('markdownSource').selectionEnd]), [0, 17]);
+    await page.evaluate(() => document.getElementById('markdownSource').setSelectionRange(3, 3));
+    await click('copyBtn');
+    eq(await page.evaluate(() => document.getElementById('toast').textContent), 'Copied the whole document.');
+    eq(await page.evaluate(() => [document.getElementById('markdownSource').selectionStart, document.getElementById('markdownSource').selectionEnd]), [3, 3]);
+  });
   await test('Markdown: footnotes and list-item continuation lines', async () => {
     const html = await render('Hi[^a] there.\n\n[^a]: The note\n\n- one\n  more\n- two');
     ok(html.includes('<sup class="fnref">1</sup>') && html.includes('<section class="footnotes">') && html.includes('The note'), 'footnote');

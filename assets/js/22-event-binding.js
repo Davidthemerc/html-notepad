@@ -439,6 +439,13 @@
       if (isSourceTab()) { el.markdownSource.focus(); document.execCommand('redo'); markDirtyFromEditor(); updateLineNumbers(); }
       else exec('redo', true);
     });
+    // Select All / Copy: keep the editor focused when the button is pressed so its selection survives.
+    for (const button of [el.selectAllBtn, el.copyBtn]) {
+      button.addEventListener('mousedown', event => event.preventDefault());
+      button.addEventListener('pointerdown', rememberEqualsCaret);
+    }
+    el.selectAllBtn.addEventListener('click', toolbarSelectAll);
+    el.copyBtn.addEventListener('click', toolbarCopy);
     // Keep the editor focused and remember the caret so the line lands exactly where the cursor is.
     el.equalsLineBtn.addEventListener('pointerdown', rememberEqualsCaret);
     el.equalsLineBtn.addEventListener('mousedown', event => event.preventDefault());
