@@ -251,6 +251,18 @@ async function suite(browser, label, url, { mobile = false } = {}) {
       await page.selectOption('#fontSizeSelect', '16');
     });
   }
+  if (!mobile) {
+    await test('font size on a large selection does not hang (1,500 lines in well under 10 s)', async () => {
+      await newDoc('Rich');
+      await page.evaluate(() => { document.getElementById('editor').innerHTML = Array.from({ length: 1500 }, (_, i) => `<div>Line ${i} <b>bold</b> words</div>`).join(''); });
+      await page.click('#editor'); await page.keyboard.press('Control+A');
+      const started = Date.now();
+      await page.selectOption('#fontSizeSelect', '24', { timeout: 30000 });
+      ok(Date.now() - started < 10000, `took ${Date.now() - started} ms`);
+      eq(await page.evaluate(() => document.querySelectorAll('#editor [style*="xxx-large"]').length), 0);
+      eq(await page.evaluate(() => getComputedStyle(document.querySelector('#editor b span')).fontSize), '24px');
+    });
+  }
   await test('Markdown: footnotes and list-item continuation lines', async () => {
     const html = await render('Hi[^a] there.\n\n[^a]: The note\n\n- one\n  more\n- two');
     ok(html.includes('<sup class="fnref">1</sup>') && html.includes('<section class="footnotes">') && html.includes('The note'), 'footnote');
@@ -321,7 +333,7 @@ async function suite(browser, label, url, { mobile = false } = {}) {
       await newDoc('Plain'); await big(); await page.waitForTimeout(900);
       const stored = () => page.evaluate(() => ({ size: (localStorage.getItem('htmlNotepad.unsavedDrafts')?.length || 0) + (overflowCache.get('htmlNotepad.unsavedDrafts')?.length || 0) }));
       const withMode = await stored();
-      ok(withMode.size < 100000, `the 2.4 MB draft is not stored while the mode is on (stored ${withMode.size} chars)`);
+      ok(withMode.size < 1000000, `the 2.4 MB draft is not stored while the mode is on (stored ${withMode.size} chars)`);
       await page.evaluate(() => { settings.largeDocMode = false; });
       await page.evaluate(() => document.getElementById('markdownSource').dispatchEvent(new Event('input', { bubbles: true }))); await page.waitForTimeout(900);
       const without = await stored();

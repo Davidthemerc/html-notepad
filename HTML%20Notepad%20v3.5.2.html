@@ -1806,7 +1806,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
     <span id="charCount">0 chars</span>
     <span id="cursorPosition">Ln 1, Col 1</span>
     <span class="zoom-control"><button id="zoomOutBtn" title="Zoom out">−</button><span id="zoomLabel">100%</span><button id="zoomInBtn" title="Zoom in">+</button></span>
-    <span>v3.5.1</span>
+    <span>v3.5.2</span>
   </div>
 </div>
 
@@ -2126,7 +2126,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
   <div class="manual-head">
     <div>
       <div id="manualDialogTitle" class="manual-title">HTML Notepad User Manual</div>
-      <div class="manual-version">Integrated Help · v3.5.1</div>
+      <div class="manual-version">Integrated Help · v3.5.2</div>
     </div>
     <button id="manualCloseTopBtn" type="button" class="manual-close" title="Close Manual (Esc)" aria-label="Close Manual">×</button>
   </div>
@@ -2148,7 +2148,7 @@ body.plain-active .editor-shell:has(> #findBar:not([hidden])) {
 </dialog>
 
 <div id="manualSectionStore" hidden>
-<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.5.1</h2>
+<section data-manual-id="overview" data-manual-title="Overview"><h2>Version 3.5.2</h2>
 <p>HTML Notepad is a self-contained, offline notepad that runs in a web
 browser. It provides tabs, rich-text formatting, folders, embedded
 images, search tools, printing, backups, and session recovery without
@@ -2161,7 +2161,7 @@ operating system unless you explicitly export a document or create a
 JSON backup.</p>
 <hr /></section>
 <section data-manual-id="starting-html-notepad" data-manual-title="1. Starting HTML Notepad"><h2>1. Starting HTML Notepad</h2>
-<p>For the standalone edition, open <code>HTML Notepad v3.5.1.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
+<p>For the standalone edition, open <code>HTML Notepad v3.5.2.html</code> in a modern browser. The standalone app runs entirely from the local HTML file and does not need an internet connection. The modular edition can instead be hosted over HTTPS and installed as a Progressive Web App (PWA).</p>
 <p>A new, empty <strong>Untitled</strong> document is available when
 there is no previous workspace to restore. HTML Notepad also remembers
 the prior session, including open tabs, the active tab, tab order,
@@ -3172,12 +3172,12 @@ Press <strong>/</strong> or <strong>Ctrl+F</strong> to focus manual
 search, <strong>Alt+Up</strong> or <strong>Alt+Down</strong> to move
 between sections, and <strong>Escape</strong> to close the popup.</p>
 <hr />
-<p><em>HTML Notepad User Manual — v3.5.1</em></p></section>
+<p><em>HTML Notepad User Manual — v3.5.2</em></p></section>
 
 <section data-manual-id="pwa-and-standalone-builds" data-manual-title="28. PWA and Standalone Builds"><h2>28. PWA and Standalone Builds</h2>
-<p>Version 3.5.1 is published in two forms that share the same application code and features.</p>
+<p>Version 3.5.2 is published in two forms that share the same application code and features.</p>
 <ul>
-<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.5.1.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
+<li><strong>Standalone HTML:</strong> <code>HTML Notepad v3.5.2.html</code> remains a single local file. It can be opened directly from a device and requires no server. A directly opened local file is not a normal installable PWA.</li>
 <li><strong>Modular/PWA:</strong> the GitHub build uses <code>index.html</code>, <code>assets/styles.css</code>, separate responsibility-based JavaScript files under <code>assets/js/</code>, <code>manifest.webmanifest</code>, icons, and <code>sw.js</code>. The hosted PWA runs those separate JavaScript files directly; it does not use a monolithic <code>app.js</code>. Shared runtime state is initialized during startup after all ordered scripts have loaded, so cross-file dependencies do not rely on single-file function hoisting. The service worker only intercepts same-origin HTTP/HTTPS requests; browser-extension and other non-web schemes are ignored. The Find/Replace bar reserves its own height above the ruler on desktop. Host the built folder over HTTPS (for example with GitHub Pages or Cloudflare Pages) to make it installable and to allow the service worker to cache the application shell for offline launches.</li>
 </ul>
 <p>The hosted PWA does not upload Notepad documents. Saved documents, folders, images, settings, and drafts continue to use browser-local IndexedDB and localStorage. The hosting server supplies the application files themselves.</p>
@@ -3218,7 +3218,7 @@ between sections, and <strong>Escape</strong> to close the popup.</p>
 </dialog>
 
 <script>
-  const APP_VERSION = '3.5.1';
+  const APP_VERSION = '3.5.2';
   const DB_NAME = 'HTMLNotepadDB';
   const DB_VERSION = 3;
   const FILE_STORE = 'files';
@@ -177041,6 +177041,47 @@ ${[[1, 32, '2F5496'], [2, 26, '2F5496'], [3, 24, '1F3763'], [4, 22, '2F5496'], [
     updateLineNumbers();
   }
 
+  // Chrome's native fontSize command is roughly quadratic in the number of blocks in the selection
+  // (about 7 s for 1,200 lines, minutes for a few thousand), which looks like a hang. Large
+  // selections are resized directly in the DOM instead (one pass, no undo step).
+  function applyFontSizeToRange(range, size) {
+    const scope = range.commonAncestorContainer.nodeType === Node.TEXT_NODE ? range.commonAncestorContainer.parentNode : range.commonAncestorContainer;
+    const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (node.nodeValue && el.editor.contains(node) && range.intersectsNode(node)) nodes.push(node);
+    }
+    let first = null, last = null;
+    for (let node of nodes) {
+      const length = node.nodeValue.length;
+      const from = node === range.startContainer ? range.startOffset : 0;
+      const to = node === range.endContainer ? range.endOffset : length;
+      if (from >= to) continue;
+      if (to < length) node.splitText(to);
+      if (from > 0) node = node.splitText(from);
+      const parent = node.parentNode;
+      if (parent !== el.editor && parent.tagName === 'SPAN' && parent.childNodes.length === 1) {
+        parent.style.fontSize = size + 'px';
+      } else {
+        const span = document.createElement('span');
+        span.style.fontSize = size + 'px';
+        node.replaceWith(span);
+        span.appendChild(node);
+      }
+      first = first || node; last = node;
+    }
+    // Inner spans that were already sized inside the selection must not override the new size.
+    scope.querySelectorAll?.('[style*="font-size"]').forEach(node => {
+      if (range.intersectsNode(node) && node.style.fontSize !== size + 'px' && !node.querySelector('[style*="font-size"]')) node.style.fontSize = size + 'px';
+    });
+    if (first && last) {
+      const sel = getSelection(), next = document.createRange();
+      next.setStart(first, 0); next.setEnd(last, last.nodeValue.length);
+      sel.removeAllRanges(); sel.addRange(next);
+    }
+  }
+
   function applyFontSizePx(px) {
     const size=Math.max(8,Math.min(96,Number(px)||16));
     if (isSourceTab()) {
@@ -177051,6 +177092,7 @@ ${[[1, 32, '2F5496'], [2, 26, '2F5496'], [3, 24, '1F3763'], [4, 22, '2F5496'], [
     restoreEditorSelection();
     el.editor.focus();
     const sel = getSelection();
+    let large = false;
     try {
       document.execCommand('styleWithCSS', false, true);
       if (sel && sel.isCollapsed) {
@@ -177063,6 +177105,9 @@ ${[[1, 32, '2F5496'], [2, 26, '2F5496'], [3, 24, '1F3763'], [4, 22, '2F5496'], [
         range.setStart(span.firstChild, 1); range.collapse(true);
         sel.removeAllRanges(); sel.addRange(range);
         toast(`Font size ${size} applies to what you type next. Select text first to resize it.`);
+      } else if ((sel.toString().length > 4000) || sel.getRangeAt(0).cloneContents().childNodes.length > 40) {
+        applyFontSizeToRange(sel.getRangeAt(0), size);
+        large = true;
       } else {
         document.execCommand('fontSize', false, '7');
         // Chrome writes "-webkit-xxx-large" (or <font size=7>) for size 7; swap in the real size.
@@ -177072,7 +177117,8 @@ ${[[1, 32, '2F5496'], [2, 26, '2F5496'], [3, 24, '1F3763'], [4, 22, '2F5496'], [
         });
       }
     } catch {}
-    markDirtyFromEditor(); updateFormatState();
+    markDirtyFromEditor();
+    if (large) updateTypographyControls(); else updateFormatState();   // format-state queries are slow on huge selections
   }
 
   function normalizedFontName(value) {

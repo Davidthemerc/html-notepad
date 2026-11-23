@@ -155,6 +155,47 @@
     updateLineNumbers();
   }
 
+  // Chrome's native fontSize command is roughly quadratic in the number of blocks in the selection
+  // (about 7 s for 1,200 lines, minutes for a few thousand), which looks like a hang. Large
+  // selections are resized directly in the DOM instead (one pass, no undo step).
+  function applyFontSizeToRange(range, size) {
+    const scope = range.commonAncestorContainer.nodeType === Node.TEXT_NODE ? range.commonAncestorContainer.parentNode : range.commonAncestorContainer;
+    const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (node.nodeValue && el.editor.contains(node) && range.intersectsNode(node)) nodes.push(node);
+    }
+    let first = null, last = null;
+    for (let node of nodes) {
+      const length = node.nodeValue.length;
+      const from = node === range.startContainer ? range.startOffset : 0;
+      const to = node === range.endContainer ? range.endOffset : length;
+      if (from >= to) continue;
+      if (to < length) node.splitText(to);
+      if (from > 0) node = node.splitText(from);
+      const parent = node.parentNode;
+      if (parent !== el.editor && parent.tagName === 'SPAN' && parent.childNodes.length === 1) {
+        parent.style.fontSize = size + 'px';
+      } else {
+        const span = document.createElement('span');
+        span.style.fontSize = size + 'px';
+        node.replaceWith(span);
+        span.appendChild(node);
+      }
+      first = first || node; last = node;
+    }
+    // Inner spans that were already sized inside the selection must not override the new size.
+    scope.querySelectorAll?.('[style*="font-size"]').forEach(node => {
+      if (range.intersectsNode(node) && node.style.fontSize !== size + 'px' && !node.querySelector('[style*="font-size"]')) node.style.fontSize = size + 'px';
+    });
+    if (first && last) {
+      const sel = getSelection(), next = document.createRange();
+      next.setStart(first, 0); next.setEnd(last, last.nodeValue.length);
+      sel.removeAllRanges(); sel.addRange(next);
+    }
+  }
+
   function applyFontSizePx(px) {
     const size=Math.max(8,Math.min(96,Number(px)||16));
     if (isSourceTab()) {
@@ -165,6 +206,7 @@
     restoreEditorSelection();
     el.editor.focus();
     const sel = getSelection();
+    let large = false;
     try {
       document.execCommand('styleWithCSS', false, true);
       if (sel && sel.isCollapsed) {
@@ -177,6 +219,9 @@
         range.setStart(span.firstChild, 1); range.collapse(true);
         sel.removeAllRanges(); sel.addRange(range);
         toast(`Font size ${size} applies to what you type next. Select text first to resize it.`);
+      } else if ((sel.toString().length > 4000) || sel.getRangeAt(0).cloneContents().childNodes.length > 40) {
+        applyFontSizeToRange(sel.getRangeAt(0), size);
+        large = true;
       } else {
         document.execCommand('fontSize', false, '7');
         // Chrome writes "-webkit-xxx-large" (or <font size=7>) for size 7; swap in the real size.
@@ -186,7 +231,8 @@
         });
       }
     } catch {}
-    markDirtyFromEditor(); updateFormatState();
+    markDirtyFromEditor();
+    if (large) updateTypographyControls(); else updateFormatState();   // format-state queries are slow on huge selections
   }
 
   function normalizedFontName(value) {
