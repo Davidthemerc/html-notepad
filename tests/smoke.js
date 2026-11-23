@@ -236,6 +236,21 @@ async function suite(browser, label, url, { mobile = false } = {}) {
     eq(await page.evaluate(() => document.getElementById('toast').textContent), 'Copied the whole document.');
     eq(await page.evaluate(() => [document.getElementById('markdownSource').selectionStart, document.getElementById('markdownSource').selectionEnd]), [3, 3]);
   });
+  if (!mobile) {
+    await test('font size: selected rich text gets the chosen px size; plain text resizes the whole document', async () => {
+      await newDoc('Rich');
+      await page.click('#editor'); await page.keyboard.type('Hello big world'); await page.keyboard.press('Control+A');
+      await page.selectOption('#fontSizeSelect', '32'); await page.waitForTimeout(150);
+      eq(await page.evaluate(() => document.getElementById('editor').innerHTML), '<span style="font-size: 32px;">Hello big world</span>');
+      await page.selectOption('#fontSizeSelect', '12'); await page.waitForTimeout(150);
+      eq(await page.evaluate(() => document.getElementById('editor').innerHTML), '<span style="font-size: 12px;">Hello big world</span>');
+      await newDoc('Plain');
+      await page.fill('#markdownSource', 'plain text');
+      await page.selectOption('#fontSizeSelect', '28');
+      eq(await page.evaluate(() => getComputedStyle(document.getElementById('markdownSource')).fontSize), '28px');
+      await page.selectOption('#fontSizeSelect', '16');
+    });
+  }
   await test('Markdown: footnotes and list-item continuation lines', async () => {
     const html = await render('Hi[^a] there.\n\n[^a]: The note\n\n- one\n  more\n- two');
     ok(html.includes('<sup class="fnref">1</sup>') && html.includes('<section class="footnotes">') && html.includes('The note'), 'footnote');

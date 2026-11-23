@@ -226,7 +226,7 @@
   }
 
   function updateFormatState() {
-    if (isSourceTab()) return;
+    if (isSourceTab()) { updateTypographyControls(); return; }
     const stateButtons = [
       [el.boldBtn, 'bold'], [el.italicBtn, 'italic'], [el.underlineBtn, 'underline'],
       [el.justifyLeftBtn, 'justifyLeft'], [el.justifyCenterBtn, 'justifyCenter'],

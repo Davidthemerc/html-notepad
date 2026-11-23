@@ -146,17 +146,45 @@
     markDirtyFromEditor(); updateFormatState();
   }
 
+  // Plain-text and Markdown documents have no per-selection formatting, so the size applies to the
+  // whole text area and is remembered in settings.
+  function applySourceFontSize() {
+    const px = Math.max(10, Math.min(48, Number(settings?.sourceFontSize) || 16));
+    el.markdownSource.style.fontSize = `${px}px`;
+    el.markdownPreview.style.fontSize = `${px}px`;
+    updateLineNumbers();
+  }
+
   function applyFontSizePx(px) {
+    const size=Math.max(8,Math.min(96,Number(px)||16));
+    if (isSourceTab()) {
+      settings.sourceFontSize = Math.min(48, size);
+      saveSettings(); applySourceFontSize();
+      return;
+    }
     restoreEditorSelection();
     el.editor.focus();
-    const size=Math.max(8,Math.min(96,Number(px)||16));
+    const sel = getSelection();
     try {
       document.execCommand('styleWithCSS', false, true);
-      document.execCommand('fontSize', false, '7');
-      el.editor.querySelectorAll('font[size="7"]').forEach(node => {
-        node.removeAttribute('size');
-        node.style.fontSize=size+'px';
-      });
+      if (sel && sel.isCollapsed) {
+        // Nothing selected: size the text typed next (a zero-width marker holds the caret).
+        const span = document.createElement('span');
+        span.style.fontSize = size + 'px';
+        span.textContent = '\u200b';
+        const range = sel.getRangeAt(0);
+        range.insertNode(span);
+        range.setStart(span.firstChild, 1); range.collapse(true);
+        sel.removeAllRanges(); sel.addRange(range);
+        toast(`Font size ${size} applies to what you type next. Select text first to resize it.`);
+      } else {
+        document.execCommand('fontSize', false, '7');
+        // Chrome writes "-webkit-xxx-large" (or <font size=7>) for size 7; swap in the real size.
+        el.editor.querySelectorAll('font[size="7"], [style*="xxx-large"]').forEach(node => {
+          node.removeAttribute('size');
+          node.style.fontSize = size + 'px';
+        });
+      }
     } catch {}
     markDirtyFromEditor(); updateFormatState();
   }
@@ -166,6 +194,10 @@
   }
 
   function updateTypographyControls() {
+    if (isSourceTab()) {
+      el.fontSizeSelect.value = String([...el.fontSizeSelect.options].map(o => Number(o.value)).reduce((a, b) => Math.abs(b - (settings.sourceFontSize || 16)) < Math.abs(a - (settings.sourceFontSize || 16)) ? b : a, 16));
+      return;
+    }
     let family='', size=16;
     try {
       family=document.queryCommandValue('fontName')||'';

@@ -1,4 +1,4 @@
-  const APP_VERSION = '3.5.0';
+  const APP_VERSION = '3.5.1';
   const DB_NAME = 'HTMLNotepadDB';
   const DB_VERSION = 3;
   const FILE_STORE = 'files';
@@ -355,6 +355,7 @@
     autosave: true,
     lineNumbers: false,
     largeDocMode: false,
+    sourceFontSize: 16,
     zoom: 100,
     colorHistory: [],
     customDictionary: []

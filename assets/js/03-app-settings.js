@@ -138,6 +138,7 @@
     syncLineNumberVisibility();
     updateLineNumbers();
     applyZoom();
+    applySourceFontSize();
     scheduleSpellcheck(0);
   }
 
